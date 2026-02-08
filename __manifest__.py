@@ -1,31 +1,26 @@
-# -*- coding: utf-8 -*-
 {
-    'name': 'TD Gauging',  # Nom commercial du module affiché dans les Apps
-    'version': '18.0.1.0.0',  # Version de développement pour Odoo 18
-    'category': 'Inventory',  # Catégorie standard Odoo
+    'name': 'TD Gauging',  # Nom commercial du module
+    'version': '18.0.1.0.0',  # Version compatible Odoo 18
+    'category': 'Inventory',  # Catégorie technique pour le classement Odoo
     'summary': 'Comprehensive management of fuel station gauging, tank inventory, and financial reconciliation.',  # Résumé
-    'description': """
-This project provides a professional tool for fuel station daily operations. 
-It tracks tank inventory levels (inches/gallons) and pump meter readings assigned to employees. 
-The module automates sales calculations and performs a full financial reconciliation 
-between expected sales and counted amounts (Cash, Cards, Coupons, Checks, and Credit).
-    """,  # Description détaillée du projet
-    'author': 'Transition Digitale',  # Nom 
-    'website': 'https://transitiondigitale.tech',  # Site internet 
-    'depends': [  # Modules Odoo nécessaires au fonctionnement
+    'description': 'The description of this module',  # Description détaillée exigée
+    'author': 'Transition Digitale',  # Nom de l'auteur
+    'website': 'https://transitiondigitale.tech',  # Site internet
+    'depends': [  # Liste des modules nécessaires
         'base',  # Noyau Odoo
-        'product',  # Gestion des carburants et des prix
-        'hr',  # Gestion des employés/pompistes
+        'product',  # Requis pour les prix des carburants
+        'hr',  # Requis pour les employés
+        'stock',  # Requis pour intégrer les menus dans l'application Inventaire
     ],
-    'data': [  # Liste des fichiers de configuration et de vues
-        'security/ir.model.access.csv',  # Sécurité et droits d'accès
-        'data/ir_sequence_data.xml',  # Configuration de la séquence ID
-        'views/gauging_views.xml',  # Définition des interfaces List/Form
-        'reports/gauging_reports.xml',  # Déclaration des actions d'impression
-        'reports/gauging_report_templates.xml',  # Modèles de rapports QWeb PDF
+    'data': [  # Chargement des fichiers XML
+        'security/ir.model.access.csv',  # Sécurité des modèles
+        'data/ir_sequence_data.xml',  # Numérotation automatique
+        'views/gauging_views.xml',  # Interfaces utilisateur
+        'reports/gauging_reports.xml',  # Actions d'impression
+        'reports/gauging_report_templates.xml',  # Templates PDF
     ],
-    'installable': True,  # Permet l'installation du module
-    'application': True,  # Définit le module comme une application à part entière
-    'auto_install': False,  # Empêche l'installation automatique (Exigé)
-    'license': 'LGPL-3',  # Type de licence standard
+    'installable': True,  # Permet l'installation
+    'application': True,  # Apparaît comme une application
+    'auto_install': False,  # Pas d'installation automatique (Exigé)
+    'license': 'LGPL-3',  # Licence standard
 }
