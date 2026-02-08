@@ -1,4 +1,4 @@
-from odoo import models, fields, api, _  # Import des outils ORM Odoo
+from odoo import models, fields, api, _ 
 
 class Gauging(models.Model):  # Définition du modèle principal
     _name = 'gauging.gauging'  # Nom technique strict
