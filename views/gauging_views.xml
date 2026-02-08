@@ -1,11 +1,34 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Vue Liste : <list> pour Odoo 18 -->
+    <!-- Action : Ce que le système fait quand on clique sur le menu -->
+    <record id="action_td_gauging" model="ir.actions.act_window">
+        <field name="name">Gauging</field> # Titre de la fenêtre
+        <field name="res_model">gauging.gauging</field> # Modèle à ouvrir
+        <field name="view_mode">list,form</field> # Modes liste et formulaire
+        <field name="help" type="html">
+            <p class="o_view_nocontent_smiling_face">Créez votre première fiche de jaugeage !</p>
+        </field>
+    </record>
+
+    <!-- MENU RACINE : APPARAÎT SUR LE DASHBOARD (CAR PAS DE PARENT) -->
+    <menuitem id="menu_td_gauging_root" 
+              name="TD Gauging" 
+              web_icon="base,static/description/settings.png"
+              sequence="1"/> # Ordre d'affichage sur le dashboard
+
+    <!-- SOUS-MENU : DANS L'APPLICATION -->
+    <menuitem id="menu_td_gauging_main" 
+              name="Fiches Gauging" 
+              parent="menu_td_gauging_root" 
+              action="action_td_gauging" 
+              sequence="10"/>
+
+    <!-- Vue Liste (Odoo 18 : balise list) -->
     <record id="view_gauging_list" model="ir.ui.view">
         <field name="name">gauging.gauging.list</field>
         <field name="model">gauging.gauging</field>
         <field name="arch" type="xml">
-            <list string="Gaugings">
+            <list string="Gaugings"> # Standard Odoo 18
                 <field name="name"/>
                 <field name="date"/>
                 <field name="user_id"/>
@@ -54,23 +77,4 @@
             </form>
         </field>
     </record>
-
-    <!-- Action pour ouvrir le module -->
-    <record id="action_td_gauging" model="ir.actions.act_window">
-        <field name="name">Gauging</field>
-        <field name="res_model">gauging.gauging</field>
-        <field name="view_mode">list,form</field>
-    </record>
-
-    <!-- MENU RACINE : SANS PARENT POUR APPARAITRE SUR LE DASHBOARD -->
-    <menuitem id="menu_td_gauging_root" 
-              name="TD Gauging" 
-              sequence="1"/>
-
-    <!-- SOUS-MENU POUR LES FICHES -->
-    <menuitem id="menu_td_gauging_main" 
-              name="Fiches Gauging" 
-              parent="menu_td_gauging_root" 
-              action="action_td_gauging" 
-              sequence="10"/>
 </odoo>
