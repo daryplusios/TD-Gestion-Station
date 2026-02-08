@@ -1,0 +1,107 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <!-- Vue Liste (Convention Odoo 18: list) -->
+    <record id="view_gauging_list" model="ir.ui.view">
+        <field name="name">gauging.gauging.list</field> <!-- Nom de la vue -->
+        <field name="model">gauging.gauging</field> <!-- Modèle lié -->
+        <field name="arch" type="xml">
+            <list string="Gaugings"> <!-- Tag list requis pour Odoo 18 -->
+                <field name="name"/> <!-- Colonne ID -->
+                <field name="date"/> <!-- Colonne Date -->
+                <field name="user_id"/> <!-- Colonne Superviseur -->
+                <field name="expected_amount" sum="Total"/> <!-- Somme automatique -->
+                <field name="state" widget="badge" decoration-success="state == 'validated'"/> <!-- Badge de statut -->
+            </list>
+        </field>
+    </record>
+
+    <!-- Vue Formulaire -->
+    <record id="view_gauging_form" model="ir.ui.view">
+        <field name="name">gauging.gauging.form</field> <!-- Nom de la vue -->
+        <field name="model">gauging.gauging</field> <!-- Modèle lié -->
+        <field name="arch" type="xml">
+            <form>
+                <header> <!-- Barre d'outils supérieure -->
+                    <button name="action_validate" string="Valider" type="object" class="oe_highlight" invisible="state == 'validated'"/> <!-- Bouton validation -->
+                    <field name="state" widget="statusbar"/> <!-- Indicateur d'état -->
+                </header>
+                <sheet> <!-- Zone de contenu principal -->
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1> <!-- Titre ID -->
+                    </div>
+                    <group> <!-- Section informations générales -->
+                        <group>
+                            <field name="date" readonly="state == 'validated'"/> <!-- Date éditable si brouillon -->
+                            <field name="user_id"/> <!-- Superviseur connecté -->
+                        </group>
+                    </group>
+                    <notebook> <!-- Onglets -->
+                        <page string="Réservoirs"> <!-- Page Jaugeage -->
+                            <field name="tank_line_ids" readonly="state == 'validated'">
+                                <list editable="bottom"> <!-- Edition en ligne -->
+                                    <field name="tank_name"/>
+                                    <field name="start_inches"/>
+                                    <field name="end_inches"/>
+                                    <field name="start_gallons"/>
+                                    <field name="end_gallons"/>
+                                    <field name="variation_gallons" readonly="1"/> <!-- Lecture seule calculée -->
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Ventes Pompes"> <!-- Page Pompes -->
+                            <field name="pump_line_ids" readonly="state == 'validated'">
+                                <list editable="bottom">
+                                    <field name="pump_id"/>
+                                    <field name="product_id"/>
+                                    <field name="employee_id"/>
+                                    <field name="start_counter"/>
+                                    <field name="end_counter"/>
+                                    <field name="unit_price"/>
+                                    <field name="amount_sold" sum="Total"/>
+                                </list>
+                            </field>
+                        </page>
+                        <page string="Décompte Financier"> <!-- Page Argent -->
+                            <group>
+                                <group string="Cash / Cartes">
+                                    <field name="cash_HTG" readonly="state == 'validated'"/>
+                                    <field name="cash_USD" readonly="state == 'validated'"/>
+                                    <field name="card_HTG" readonly="state == 'validated'"/>
+                                    <field name="card_USD" readonly="state == 'validated'"/>
+                                </group>
+                                <group string="Coupons">
+                                    <field name="coupon_1000_HTG" readonly="state == 'validated'"/>
+                                    <field name="coupon_500_HTG" readonly="state == 'validated'"/>
+                                </group>
+                            </group>
+                            <label for="check_line_ids" string="Chèques"/>
+                            <field name="check_line_ids" readonly="state == 'validated'">
+                                <list editable="bottom"><field name="amount" sum="Total"/></list>
+                            </field>
+                            <label for="credit_line_ids" string="Fiches de Crédit" class="mt-2"/>
+                            <field name="credit_line_ids" readonly="state == 'validated'">
+                                <list editable="bottom"><field name="amount" sum="Total"/></list>
+                            </field>
+                        </page>
+                    </notebook>
+                    <group class="oe_subtotal_footer"> <!-- Totaux finaux -->
+                        <field name="expected_amount"/> <!-- Attendu -->
+                        <field name="counted_amount_total"/> <!-- Réel -->
+                        <field name="difference" class="oe_subtotal_footer_separator" decoration-danger="difference &lt; 0"/> <!-- Écart -->
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- Action Fenêtre -->
+    <record id="action_td_gauging" model="ir.actions.act_window">
+        <field name="name">TD Gauging</field>
+        <field name="res_model">gauging.gauging</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <!-- Menus -->
+    <menuitem id="menu_td_gauging_root" name="TD Gauging" sequence="10"/> <!-- Menu Racine -->
+    <menuitem id="menu_td_gauging_main" name="Fiches Gauging" parent="menu_td_gauging_root" action="action_td_gauging"/> <!-- Sous-menu -->
+</odoo>

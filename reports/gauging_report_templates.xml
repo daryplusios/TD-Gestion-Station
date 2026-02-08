@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_gauging_template"> <!-- Définition du template QWeb -->
+        <t t-call="web.html_container"> <!-- Conteneur HTML Odoo -->
+            <t t-foreach="docs" t-as="doc"> <!-- Boucle sur les documents sélectionnés -->
+                <t t-call="web.external_layout"> <!-- Mise en page avec en-tête/pied de page société -->
+                    <div class="page"> <!-- Corps de la page -->
+                        <h2 class="text-center">RAPPORT DE GAUGING : <span t-field="doc.name"/></h2> <!-- Titre -->
+                        <div class="row mt-4 mb-4"> <!-- Informations entête -->
+                            <div class="col-6"><strong>Date :</strong> <span t-field="doc.date"/></div>
+                            <div class="col-6"><strong>Superviseur :</strong> <span t-field="doc.user_id"/></div>
+                        </div>
+                        <h3>1. Inventaire Réservoirs</h3> <!-- Section réservoirs -->
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <th>Réservoir</th>
+                                    <th class="text-end">Gallons Début</th>
+                                    <th class="text-end">Gallons Fin</th>
+                                    <th class="text-end">Variation</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.tank_line_ids" t-as="t">
+                                    <tr>
+                                        <td><span t-field="t.tank_name"/></td>
+                                        <td class="text-end"><span t-field="t.start_gallons"/></td>
+                                        <td class="text-end"><span t-field="t.end_gallons"/></td>
+                                        <td class="text-end"><span t-field="t.variation_gallons"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                        <h3 class="mt-4">2. Récapitulatif Financier</h3> <!-- Section finances -->
+                        <table class="table table-sm table-borderless">
+                            <tr>
+                                <td><strong>Total Ventes Attendues :</strong></td>
+                                <td class="text-end"><span t-field="doc.expected_amount"/> HTG</td>
+                            </tr>
+                            <tr>
+                                <td><strong>Total Argent Compté :</strong></td>
+                                <td class="text-end"><span t-field="doc.counted_amount_total"/> HTG</td>
+                            </tr>
+                            <tr class="border-top">
+                                <td><strong>Écart / Différence :</strong></td>
+                                <td class="text-end"><strong><span t-field="doc.difference"/> HTG</strong></td>
+                            </tr>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

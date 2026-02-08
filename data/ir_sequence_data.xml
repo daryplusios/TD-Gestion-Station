@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <data noupdate="1"> <!-- Empêche la réinitialisation de la séquence lors d'une MAJ -->
+        <record id="seq_td_gauging" model="ir.sequence"> <!-- Définition de la séquence -->
+            <field name="name">TD Gauging Sequence</field> <!-- Nom interne -->
+            <field name="code">gauging.gauging</field> <!-- Code utilisé dans le create Python -->
+            <field name="prefix">GAU/%(year)s/</field> <!-- Préfixe avec année -->
+            <field name="padding">5</field> <!-- Nombre de zéros -->
+        </record>
+    </data>
+</odoo>
