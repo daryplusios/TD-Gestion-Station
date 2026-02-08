@@ -1,14 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Déclaration de l'action d'impression du rapport PDF -->
+    <!-- Déclaration de l'action de rapport -->
     <record id="action_report_gauging" model="ir.actions.report">
+        <!-- Nom qui apparaîtra dans le menu "Imprimer" -->
         <field name="name">Rapport de Gauging</field>
+        <!-- Modèle technique sur lequel le rapport s'applique -->
         <field name="model">gauging.gauging</field>
+        <!-- Type de rapport : PDF généré par QWeb -->
         <field name="report_type">qweb-pdf</field>
+        <!-- L'ID TECHNIQUE (Doit être exactement: nom_du_module.id_du_template) -->
         <field name="report_name">td_gauging.report_gauging_template</field>
+        <!-- Nom du fichier généré -->
         <field name="report_file">td_gauging.report_gauging_template</field>
+        <!-- Nom du PDF lors du téléchargement (ex: Gauging - GAU/2026/00001.pdf) -->
         <field name="print_report_name">'Gauging - %s' % (object.name)</field>
+        <!-- Lie ce rapport au modèle pour qu'il apparaisse dans le bouton "Print" -->
         <field name="binding_model_id" ref="model_gauging_gauging"/>
+        <!-- Type de liaison : Rapport -->
         <field name="binding_type">report</field>
     </record>
 </odoo>

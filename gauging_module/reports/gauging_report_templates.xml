@@ -1,19 +1,30 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <template id="report_gauging_template"> <!-- Définition du template QWeb -->
-        <t t-call="web.html_container"> <!-- Conteneur HTML Odoo -->
-            <t t-foreach="docs" t-as="doc"> <!-- Boucle sur les documents sélectionnés -->
-                <t t-call="web.external_layout"> <!-- Mise en page avec en-tête/pied de page société -->
-                    <div class="page"> <!-- Corps de la page -->
-                        <h2 class="text-center">RAPPORT DE GAUGING : <span t-field="doc.name"/></h2> <!-- Titre -->
-                        <div class="row mt-4 mb-4"> <!-- Informations entête -->
-                            <div class="col-6"><strong>Date :</strong> <span t-field="doc.date"/></div>
-                            <div class="col-6"><strong>Superviseur :</strong> <span t-field="doc.user_id"/></div>
+    <!-- L'ID ici doit correspondre exactement à celui appelé dans l'action ci-dessus -->
+    <template id="report_gauging_template">
+        <!-- Conteneur standard pour les rapports Odoo -->
+        <t t-call="web.html_container">
+            <!-- Boucle sur les documents sélectionnés (permet l'impression en masse) -->
+            <t t-foreach="docs" t-as="doc">
+                <!-- Utilisation de l'en-tête et pied de page officiel de la société -->
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <!-- Titre principal du rapport -->
+                        <h2 class="text-center">RAPPORT DE GAUGING : <span t-field="doc.name"/></h2>
+                        
+                        <!-- Informations d'en-tête -->
+                        <div class="row mt-4 mb-4">
+                            <div class="col-6">
+                                <strong>Date :</strong> <span t-field="doc.date"/><br/>
+                                <strong>Superviseur :</strong> <span t-field="doc.user_id.name"/>
+                            </div>
                         </div>
-                        <h3>1. Inventaire Réservoirs</h3> <!-- Section réservoirs -->
+
+                        <!-- Section 1 : Tableau des réservoirs -->
+                        <h3 class="mt-4">1. Inventaire Réservoirs</h3>
                         <table class="table table-sm table-bordered">
                             <thead>
-                                <tr>
+                                <tr class="table-active">
                                     <th>Réservoir</th>
                                     <th class="text-end">Gallons Début</th>
                                     <th class="text-end">Gallons Fin</th>
@@ -31,19 +42,48 @@
                                 </t>
                             </tbody>
                         </table>
-                        <h3 class="mt-4">2. Récapitulatif Financier</h3> <!-- Section finances -->
-                        <table class="table table-sm table-borderless">
+
+                        <!-- Section 2 : Tableau des ventes aux pompes -->
+                        <h3 class="mt-4">2. Ventes Pompes</h3>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr class="table-active">
+                                    <th>Pompe</th>
+                                    <th>Produit</th>
+                                    <th class="text-end">Quantité</th>
+                                    <th class="text-end">Prix Unitaire</th>
+                                    <th class="text-end">Montant</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.pump_line_ids" t-as="p">
+                                    <tr>
+                                        <td><span t-field="p.pump_id"/></td>
+                                        <td><span t-field="p.product_id.name"/></td>
+                                        <td class="text-end"><span t-field="p.quantity_sold"/></td>
+                                        <td class="text-end"><span t-field="p.unit_price"/></td>
+                                        <td class="text-end"><span t-field="p.amount_sold"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <!-- Section 3 : Récapitulatif financier et écart -->
+                        <h3 class="mt-4">3. Récapitulatif Financier</h3>
+                        <table class="table table-sm" style="width: 50%; margin-left: auto;">
                             <tr>
                                 <td><strong>Total Ventes Attendues :</strong></td>
-                                <td class="text-end"><span t-field="doc.expected_amount"/> HTG</td>
+                                <td class="text-end"><span t-field="doc.expected_amount"/></td>
                             </tr>
                             <tr>
                                 <td><strong>Total Argent Compté :</strong></td>
-                                <td class="text-end"><span t-field="doc.counted_amount_total"/> HTG</td>
+                                <td class="text-end"><span t-field="doc.counted_amount_total"/></td>
                             </tr>
-                            <tr class="border-top">
+                            <tr class="border-top table-active">
                                 <td><strong>Écart / Différence :</strong></td>
-                                <td class="text-end"><strong><span t-field="doc.difference"/> HTG</strong></td>
+                                <td class="text-end">
+                                    <strong><span t-field="doc.difference"/></strong>
+                                </td>
                             </tr>
                         </table>
                     </div>
