@@ -1,78 +1,144 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Action : Ce que le système fait quand on clique sur le menu -->
+    <!-- Début de la définition de l'action de fenêtre -->
     <record id="action_td_gauging" model="ir.actions.act_window">
-        <field name="name">Gauging</field> # Titre de la fenêtre
-        <field name="res_model">gauging.gauging</field> # Modèle à ouvrir
-        <field name="view_mode">list,form</field> # Modes liste et formulaire
+        <!-- Nom qui s'affichera en haut de la page -->
+        <field name="name">Gauging</field>
+        <!-- Modèle technique que l'action doit ouvrir -->
+        <field name="res_model">gauging.gauging</field>
+        <!-- Modes d'affichage autorisés : Liste et Formulaire -->
+        <field name="view_mode">list,form</field>
+        <!-- Aide affichée quand la liste est vide -->
         <field name="help" type="html">
             <p class="o_view_nocontent_smiling_face">Créez votre première fiche de jaugeage !</p>
         </field>
     </record>
 
-    <!-- MENU RACINE : APPARAÎT SUR LE DASHBOARD (CAR PAS DE PARENT) -->
+    <!-- Menu Racine : Sans parent pour qu'il apparaisse sur le Dashboard principal -->
     <menuitem id="menu_td_gauging_root" 
               name="TD Gauging" 
               web_icon="base,static/description/settings.png"
-              sequence="1"/> # Ordre d'affichage sur le dashboard
+              sequence="1"/>
 
-    <!-- SOUS-MENU : DANS L'APPLICATION -->
+    <!-- Sous-menu : Placé à l'intérieur du menu racine -->
     <menuitem id="menu_td_gauging_main" 
               name="Fiches Gauging" 
               parent="menu_td_gauging_root" 
               action="action_td_gauging" 
               sequence="10"/>
 
-    <!-- Vue Liste (Odoo 18 : balise list) -->
+    <!-- Définition de la vue Liste (Odoo 18 utilise le tag list) -->
     <record id="view_gauging_list" model="ir.ui.view">
+        <!-- Nom technique de la vue liste -->
         <field name="name">gauging.gauging.list</field>
+        <!-- Modèle rattaché à cette vue -->
         <field name="model">gauging.gauging</field>
         <field name="arch" type="xml">
-            <list string="Gaugings"> # Standard Odoo 18
+            <!-- Début de la structure de liste -->
+            <list string="Gaugings">
+                <!-- Colonne pour l'ID de la fiche -->
                 <field name="name"/>
+                <!-- Colonne pour la date -->
                 <field name="date"/>
+                <!-- Colonne pour le superviseur -->
                 <field name="user_id"/>
+                <!-- Colonne montant attendu avec somme automatique en bas -->
                 <field name="expected_amount" sum="Total"/>
+                <!-- Colonne statut avec un badge de couleur -->
                 <field name="state" widget="badge" decoration-success="state == 'validated'"/>
             </list>
         </field>
     </record>
 
-    <!-- Vue Formulaire -->
+    <!-- Définition de la vue Formulaire -->
     <record id="view_gauging_form" model="ir.ui.view">
         <field name="name">gauging.gauging.form</field>
         <field name="model">gauging.gauging</field>
         <field name="arch" type="xml">
             <form>
                 <header>
+                    <!-- Bouton Valider : invisible si la fiche est déjà validée -->
                     <button name="action_validate" string="Valider" type="object" class="oe_highlight" invisible="state == 'validated'"/>
+                    <!-- Barre de statut pour voir l'étape actuelle -->
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
-                    <div class="oe_title"><h1><field name="name"/></h1></div>
-                    <group><group><field name="date" readonly="state == 'validated'"/><field name="user_id"/></group></group>
+                    <!-- Titre de la fiche (ID) -->
+                    <div class="oe_title">
+                        <h1><field name="name"/></h1>
+                    </div>
+                    <group>
+                        <group>
+                            <!-- Date : en lecture seule si validé -->
+                            <field name="date" readonly="state == 'validated'"/>
+                            <!-- Utilisateur qui crée la fiche -->
+                            <field name="user_id"/>
+                        </group>
+                    </group>
                     <notebook>
+                        <!-- Onglet pour le jaugeage des réservoirs -->
                         <page string="Réservoirs">
                             <field name="tank_line_ids" readonly="state == 'validated'">
                                 <list editable="bottom">
-                                    <field name="tank_name"/><field name="start_inches"/><field name="end_inches"/><field name="start_gallons"/><field name="end_gallons"/><field name="variation_gallons" readonly="1"/>
+                                    <field name="tank_name"/>
+                                    <field name="start_inches"/>
+                                    <field name="end_inches"/>
+                                    <field name="start_gallons"/>
+                                    <field name="end_gallons"/>
+                                    <field name="variation_gallons" readonly="1"/>
                                 </list>
                             </field>
                         </page>
+                        <!-- Onglet pour les compteurs des pompes -->
                         <page string="Ventes Pompes">
                             <field name="pump_line_ids" readonly="state == 'validated'">
                                 <list editable="bottom">
-                                    <field name="pump_id"/><field name="product_id"/><field name="employee_id"/><field name="start_counter"/><field name="end_counter"/><field name="unit_price"/><field name="amount_sold" sum="Total"/>
+                                    <field name="pump_id"/>
+                                    <field name="product_id"/>
+                                    <field name="employee_id"/>
+                                    <field name="start_counter"/>
+                                    <field name="end_counter"/>
+                                    <field name="unit_price"/>
+                                    <field name="amount_sold" sum="Total"/>
                                 </list>
                             </field>
                         </page>
+                        <!-- Onglet pour la réconciliation financière -->
                         <page string="Décompte Financier">
-                            <group><group string="Cash / Cartes"><field name="cash_HTG"/><field name="cash_USD"/><field name="card_HTG"/><field name="card_USD"/></group><group string="Coupons"><field name="coupon_1000_HTG"/><field name="coupon_500_HTG"/></group></group>
-                            <label for="check_line_ids" string="Chèques"/><field name="check_line_ids"><list editable="bottom"><field name="amount" sum="Total"/></list></field>
-                            <label for="credit_line_ids" string="Fiches de Crédit"/><field name="credit_line_ids"><list editable="bottom"><field name="amount" sum="Total"/></list></field>
+                            <group>
+                                <group string="Cash / Cartes">
+                                    <field name="cash_HTG" readonly="state == 'validated'"/>
+                                    <field name="cash_USD" readonly="state == 'validated'"/>
+                                    <field name="card_HTG" readonly="state == 'validated'"/>
+                                    <field name="card_USD" readonly="state == 'validated'"/>
+                                </group>
+                                <group string="Coupons">
+                                    <field name="coupon_1000_HTG" readonly="state == 'validated'"/>
+                                    <field name="coupon_500_HTG" readonly="state == 'validated'"/>
+                                </group>
+                            </group>
+                            <!-- Liste des chèques -->
+                            <label for="check_line_ids" string="Chèques"/>
+                            <field name="check_line_ids" readonly="state == 'validated'">
+                                <list editable="bottom">
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
+                            <!-- Liste des crédits clients -->
+                            <label for="credit_line_ids" string="Fiches de Crédit" class="mt-2"/>
+                            <field name="credit_line_ids" readonly="state == 'validated'">
+                                <list editable="bottom">
+                                    <field name="amount" sum="Total"/>
+                                </list>
+                            </field>
                         </page>
                     </notebook>
-                    <group class="oe_subtotal_footer"><field name="expected_amount"/><field name="counted_amount_total"/><field name="difference" class="oe_subtotal_footer_separator" decoration-danger="difference &lt; 0"/></group>
+                    <!-- Pied de page avec les calculs totaux -->
+                    <group class="oe_subtotal_footer">
+                        <field name="expected_amount"/>
+                        <field name="counted_amount_total"/>
+                        <field name="difference" class="oe_subtotal_footer_separator" decoration-danger="difference &lt; 0"/>
+                    </group>
                 </sheet>
             </form>
         </field>
