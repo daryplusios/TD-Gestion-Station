@@ -11,8 +11,8 @@
         'security/ir.model.access.csv',  # Sécurité
         'data/ir_sequence_data.xml',  # Séquence ID
         'views/gauging_views.xml',  # Vues et Menus
-        'reports/gauging_reports.xml',  # Déclaration rapports
         'reports/gauging_report_templates.xml',  # Design rapports
+        'reports/gauging_reports.xml',  # Déclaration rapports
     ],
     'installable': True,  # Autorise l'installation
     'application': True,  # INDISPENSABLE pour apparaître sur le Dashboard principal
