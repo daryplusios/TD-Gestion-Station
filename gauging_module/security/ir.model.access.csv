@@ -1,6 +1,8 @@
 id,name,model_id:id,group_id:id,perm_read,perm_write,perm_create,perm_unlink
 access_gauging_gauging,gauging.gauging,model_gauging_gauging,base.group_user,1,1,1,1
-access_gauging_tank_line,gauging.tank_line,model_gauging_tank_line,base.group_user,1,1,1,1
 access_gauging_pump_line,gauging.pump_line,model_gauging_pump_line,base.group_user,1,1,1,1
-access_gauging_check_line,gauging.check_line,model_gauging_check_line,base.group_user,1,1,1,1
+access_gauging_tank_line,gauging.tank_line,model_gauging_tank_line,base.group_user,1,1,1,1
+access_gauging_disbursement,gauging.disbursement,model_gauging_disbursement,base.group_user,1,1,1,1
+access_gauging_coupon_line,gauging.coupon_line,model_gauging_coupon_line,base.group_user,1,1,1,1
 access_gauging_credit_line,gauging.credit_line,model_gauging_credit_line,base.group_user,1,1,1,1
+access_gauging_check_line,gauging.check_line,model_gauging_check_line,base.group_user,1,1,1,1

@@ -1,14 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Déclaration de l'action d'impression -->
-    <record id="action_report_gauging" model="ir.actions.report">
-        <field name="name">Rapport de Gauging</field>
+    <record id="action_report_decompte" model="ir.actions.report">
+        <field name="name">Rapport de Décompte</field>
         <field name="model">gauging.gauging</field>
         <field name="report_type">qweb-pdf</field>
-        <!-- Utilisation du nom technique correct du dossier : gauging_module -->
-        <field name="report_name">gauging_module.report_gauging_template</field>
-        <field name="report_file">gauging_module.report_gauging_template</field>
-        <field name="print_report_name">'Gauging - %s' % (object.name)</field>
+        <field name="report_name">gauging_module.report_decompte_template</field>
+        <field name="report_file">gauging_module.report_decompte_template</field>
+        <field name="print_report_name">'Décompte - %s' % (object.name)</field>
+        <field name="binding_model_id" ref="model_gauging_gauging"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="action_report_inventaire" model="ir.actions.report">
+        <field name="name">Rapport d'Inventaire</field>
+        <field name="model">gauging.gauging</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">gauging_module.report_inventaire_template</field>
+        <field name="report_file">gauging_module.report_inventaire_template</field>
+        <field name="print_report_name">'Inventaire - %s' % (object.name)</field>
         <field name="binding_model_id" ref="model_gauging_gauging"/>
         <field name="binding_type">report</field>
     </record>

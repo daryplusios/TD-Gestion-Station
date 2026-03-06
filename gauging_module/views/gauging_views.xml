@@ -1,153 +1,127 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Définition de l'action qui ouvre la fenêtre du module -->
-    <record id="action_td_gauging" model="ir.actions.act_window">
-        <!-- Nom affiché dans le fil d'Ariane et le titre du navigateur -->
-        <field name="name">Gauging</field>
-        <!-- Modèle technique que cette action va interroger -->
-        <field name="res_model">gauging.gauging</field>
-        <!-- Définit l'ordre des vues : Liste d'abord, puis Formulaire -->
-        <field name="view_mode">list,form</field>
-        <!-- Message de bienvenue affiché si aucune fiche n'existe encore -->
-        <field name="help" type="html">
-            <p class="o_view_nocontent_smiling_face">Créez votre première fiche de jaugeage !</p>
-        </field>
-    </record>
-
-    <!-- Menu Principal (Racine) : Sans parent pour générer l'icône sur le Dashboard principal -->
-    <menuitem id="menu_td_gauging_root" 
-              name="TD Gauging" 
-              web_icon="base,static/description/settings.png"
-              sequence="1"/>
-
-    <!-- Sous-menu : Placé à l'intérieur de l'application TD Gauging -->
-    <menuitem id="menu_td_gauging_main" 
-              name="Fiches Gauging" 
-              parent="menu_td_gauging_root" 
-              action="action_td_gauging" 
-              sequence="10"/>
-
-    <!-- Vue Liste (Convention Odoo 18 : Utilisation du tag <list>) -->
-    <record id="view_gauging_list" model="ir.ui.view">
-        <field name="name">gauging.gauging.list</field>
-        <field name="model">gauging.gauging</field>
-        <field name="arch" type="xml">
-            <!-- Structure de la vue en tableau -->
-            <list string="Gaugings">
-                <!-- Colonne Référence (ID) -->
-                <field name="name"/>
-                <!-- Colonne Date de création -->
-                <field name="date"/>
-                <!-- Colonne Superviseur (User connecté) -->
-                <field name="user_id"/>
-                <!-- Colonne Somme des ventes attendues avec totalisateur automatique -->
-                <field name="expected_amount" sum="Total"/>
-                <!-- Colonne Statut avec badge de couleur dynamique -->
-                <field name="state" widget="badge" decoration-success="state == 'validated'"/>
-            </list>
-        </field>
-    </record>
-
-    <!-- Vue Formulaire : Détail complet de la fiche de jaugeage -->
     <record id="view_gauging_form" model="ir.ui.view">
         <field name="name">gauging.gauging.form</field>
         <field name="model">gauging.gauging</field>
         <field name="arch" type="xml">
             <form>
-                <!-- Barre d'outils supérieure -->
                 <header>
-                    <!-- Bouton Valider : Uniquement visible si l'état est 'draft' -->
-                    <button name="action_validate" string="Valider" type="object" class="oe_highlight" invisible="state == 'validated'"/>
-                    <!-- Barre de progression du statut de la fiche -->
+                    <button name="action_validate" string="Valider le Rapport" type="object" class="oe_highlight" invisible="state == 'validated'"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
-                    <!-- En-tête visuel avec le numéro de la fiche -->
                     <div class="oe_title">
+                        <label for="name" string="Référence du Rapport"/>
                         <h1><field name="name"/></h1>
                     </div>
                     <group>
-                        <group>
-                            <!-- Champ Date : Devient readonly une fois la fiche validée -->
+                        <group string="Configuration du Shift">
                             <field name="date" readonly="state == 'validated'"/>
-                            <!-- Superviseur responsable de la saisie -->
-                            <field name="user_id"/>
+                            <field name="shift" widget="radio" options="{'horizontal': true}" readonly="state == 'validated'"/>
+                            <field name="supervisor_id" readonly="1"/>
+                            <field name="currency_rate" string="Taux USD/HTG" readonly="state == 'validated'"/>
+                        </group>
+                        <group string="Résumé Financier" class="oe_subtotal_footer">
+                            <field name="total_sales_expected" widget="monetary" string="Ventes Théoriques"/>
+                            <field name="total_remittance" widget="monetary" string="Montant Réel Remis"/>
+                            <field name="difference" widget="monetary" decoration-danger="difference &lt; 0" decoration-success="difference &gt; 0" string="Écart (Short/Over)"/>
                         </group>
                     </group>
-                    <!-- Organisation par onglets -->
                     <notebook>
-                        <!-- Onglet 1 : Inventaire physique des cuves -->
-                        <page string="Réservoirs">
-                            <field name="tank_line_ids" readonly="state == 'validated'">
-                                <list editable="bottom">
-                                    <field name="tank_name"/>
-                                    <field name="start_inches"/>
-                                    <field name="end_inches"/>
-                                    <field name="start_gallons"/>
-                                    <field name="end_gallons"/>
-                                    <!-- Variation calculée automatiquement en lecture seule -->
-                                    <field name="variation_gallons" readonly="1"/>
-                                </list>
-                            </field>
-                        </page>
-                        <!-- Onglet 2 : Ventes enregistrées via les compteurs des pompes -->
                         <page string="Ventes Pompes">
                             <field name="pump_line_ids" readonly="state == 'validated'">
                                 <list editable="bottom">
-                                    <field name="pump_id"/>
+                                    <field name="pompiste_id"/>
+                                    <field name="pump_name"/>
                                     <field name="product_id"/>
-                                    <field name="employee_id"/>
-                                    <field name="start_counter"/>
-                                    <field name="end_counter"/>
-                                    <field name="unit_price"/>
-                                    <!-- CHAMP AJOUTÉ : Affiche la quantité (End - Start) -->
-                                    <field name="quantity_sold" readonly="1"/>
-                                    <!-- Montant total de la vente par ligne -->
-                                    <field name="amount_sold" sum="Total"/>
+                                    <field name="meter_opening" string="Ouverture"/>
+                                    <field name="meter_closing" string="Fermeture"/>
+                                    <field name="calibration_qty" string="Calibrage"/>
+                                    <field name="qty_sold" string="Gallons"/>
+                                    <field name="price_unit" string="Prix Gal"/>
+                                    <field name="amount_sold" sum="Total Ventes"/>
                                 </list>
                             </field>
                         </page>
-                        <!-- Onglet 3 : Récapitulatif monétaire pour la réconciliation -->
-                        <page string="Décompte Financier">
+                        <page string="Décompte Cash HTG/USD">
                             <group>
-                                <group string="Cash / Cartes">
-                                    <field name="cash_HTG" readonly="state == 'validated'"/>
-                                    <field name="cash_USD" readonly="state == 'validated'"/>
-                                    <field name="card_HTG" readonly="state == 'validated'"/>
-                                    <field name="card_USD" readonly="state == 'validated'"/>
+                                <group string="Détail Billets Gourdes">
+                                    <field name="bill_1000"/>
+                                    <field name="bill_500"/>
+                                    <field name="bill_250"/>
+                                    <field name="bill_100"/>
+                                    <field name="bill_50"/>
+                                    <field name="bill_25"/>
+                                    <field name="bill_10"/>
+                                    <field name="coin_amount" string="Pièces / Monnaies"/>
+                                    <field name="total_cash_htg" string="TOTAL CASH HTG" class="oe_read_only"/>
                                 </group>
-                                <group string="Coupons">
-                                    <field name="coupon_1000_HTG" readonly="state == 'validated'"/>
-                                    <field name="coupon_500_HTG" readonly="state == 'validated'"/>
+                                <group string="USD &amp; TPE">
+                                    <field name="cash_usd" string="Cash USD"/>
+                                    <field name="tpe_unibk" string="UNIBK"/>
+                                    <field name="tpe_sgbk" string="SGBK"/>
+                                    <field name="tpe_bandari" string="Bandari"/>
+                                    <field name="subsidy_amount" string="Subvention État"/>
                                 </group>
                             </group>
-                            <!-- Section des chèques encaissés -->
-                            <label for="check_line_ids" string="Chèques"/>
-                            <field name="check_line_ids" readonly="state == 'validated'">
-                                <list editable="bottom">
-                                    <field name="amount" sum="Total"/>
-                                </list>
-                            </field>
-                            <!-- Section des bons de crédit accordés aux clients -->
-                            <label for="credit_line_ids" string="Fiches de Crédit" class="mt-2"/>
-                            <field name="credit_line_ids" readonly="state == 'validated'">
-                                <list editable="bottom">
-                                    <field name="amount" sum="Total"/>
-                                </list>
-                            </field>
+                        </page>
+                        <page string="Bons, Crédits &amp; Chèques">
+                            <group string="Bons de Carburant (National/Total)">
+                                <field name="coupon_line_ids" nolabel="1" readonly="state == 'validated'">
+                                    <list editable="bottom">
+                                        <field name="name" string="Type de Bon"/>
+                                        <field name="qty" string="Qté"/>
+                                        <field name="unit_value" string="Valeur"/>
+                                        <field name="amount" sum="Total Bons"/>
+                                    </list>
+                                </field>
+                            </group>
+                            <group string="Ventes à Crédit">
+                                <field name="credit_line_ids" nolabel="1" readonly="state == 'validated'">
+                                    <list editable="bottom">
+                                        <field name="customer_name" string="Client"/>
+                                        <field name="invoice_ref" string="Fiche #"/>
+                                        <field name="product_id" string="Produit"/>
+                                        <field name="qty" string="Qté Gal"/>
+                                        <field name="amount" sum="Total Crédit"/>
+                                    </list>
+                                </field>
+                            </group>
+                        </page>
+                        <page string="Stocks &amp; Décaissements">
+                            <group string="Inventaire des Cuves">
+                                <field name="tank_line_ids" nolabel="1" readonly="state == 'validated'">
+                                    <list editable="bottom">
+                                        <field name="tank_name" string="Nom Cuve"/>
+                                        <field name="product_id" string="Produit"/>
+                                        <field name="opening_qty" string="Ouv."/>
+                                        <field name="closing_qty" string="Ferm."/>
+                                        <field name="net_qty" string="Stock Final"/>
+                                    </list>
+                                </field>
+                            </group>
+                            <group string="Sorties de Caisse (Décaissements)">
+                                <field name="disbursement_ids" nolabel="1" readonly="state == 'validated'">
+                                    <list editable="bottom">
+                                        <field name="beneficiary" string="Raison / À qui"/>
+                                        <field name="authorized_by" string="Autorisé par"/>
+                                        <field name="amount" sum="Total Dépenses"/>
+                                    </list>
+                                </field>
+                            </group>
                         </page>
                     </notebook>
-                    <!-- Pied de page avec les totaux globaux et l'écart -->
-                    <group class="oe_subtotal_footer">
-                        <!-- Total théorique basé sur les pompes -->
-                        <field name="expected_amount"/>
-                        <!-- Total réel basé sur l'argent compté -->
-                        <field name="counted_amount_total"/>
-                        <!-- Différence finale colorée en rouge si négative -->
-                        <field name="difference" class="oe_subtotal_footer_separator" decoration-danger="difference &lt; 0"/>
-                    </group>
                 </sheet>
             </form>
         </field>
     </record>
+
+    <record id="action_gauging_all" model="ir.actions.act_window">
+        <field name="name">Suivi Jaugeages</field>
+        <field name="res_model">gauging.gauging</field>
+        <field name="view_mode">list,form</field>
+    </record>
+
+    <menuitem id="menu_gauging_root" name="Gestion Station" sequence="10"/>
+    <menuitem id="menu_gauging_main" name="Fiches de Jaugeage" parent="menu_gauging_root" action="action_gauging_all"/>
 </odoo>

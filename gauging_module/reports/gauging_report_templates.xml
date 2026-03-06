@@ -1,90 +1,70 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- L'ID ici doit correspondre exactement à celui appelé dans l'action ci-dessus -->
-    <template id="report_gauging_template">
-        <!-- Conteneur standard pour les rapports Odoo -->
+    <!-- Template 1 : Rapport de Décompte Financier -->
+    <template id="report_decompte_template">
         <t t-call="web.html_container">
-            <!-- Boucle sur les documents sélectionnés (permet l'impression en masse) -->
             <t t-foreach="docs" t-as="doc">
-                <!-- Utilisation de l'en-tête et pied de page officiel de la société -->
                 <t t-call="web.external_layout">
                     <div class="page">
-                        <!-- Titre principal du rapport -->
-                        <h2 class="text-center">RAPPORT DE GAUGING : <span t-field="doc.name"/></h2>
-                        
-                        <!-- Informations d'en-tête -->
-                        <div class="row mt-4 mb-4">
-                            <div class="col-6">
-                                <strong>Date :</strong> <span t-field="doc.date"/><br/>
-                                <strong>Superviseur :</strong> <span t-field="doc.user_id.name"/>
-                            </div>
+                        <h2 class="text-center">RAPPORT DE DÉCOMPTE : <span t-field="doc.name"/></h2>
+                        <div class="row mt32 mb32">
+                            <div class="col-6"><strong>Superviseur :</strong> <span t-field="doc.supervisor_id.name"/></div>
+                            <div class="col-6"><strong>Date :</strong> <span t-field="doc.date"/> | <strong>Rotation :</strong> <span t-field="doc.shift"/></div>
                         </div>
 
-                        <!-- Section 1 : Tableau des réservoirs -->
-                        <h3 class="mt-4">1. Inventaire Réservoirs</h3>
+                        <h3>Ventes Pompes</h3>
                         <table class="table table-sm table-bordered">
                             <thead>
-                                <tr class="table-active">
-                                    <th>Réservoir</th>
-                                    <th class="text-end">Gallons Début</th>
-                                    <th class="text-end">Gallons Fin</th>
-                                    <th class="text-end">Variation</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                <t t-foreach="doc.tank_line_ids" t-as="t">
-                                    <tr>
-                                        <td><span t-field="t.tank_name"/></td>
-                                        <td class="text-end"><span t-field="t.start_gallons"/></td>
-                                        <td class="text-end"><span t-field="t.end_gallons"/></td>
-                                        <td class="text-end"><span t-field="t.variation_gallons"/></td>
-                                    </tr>
-                                </t>
-                            </tbody>
-                        </table>
-
-                        <!-- Section 2 : Tableau des ventes aux pompes -->
-                        <h3 class="mt-4">2. Ventes Pompes</h3>
-                        <table class="table table-sm table-bordered">
-                            <thead>
-                                <tr class="table-active">
-                                    <th>Pompe</th>
-                                    <th>Produit</th>
-                                    <th class="text-end">Quantité</th>
-                                    <th class="text-end">Prix Unitaire</th>
-                                    <th class="text-end">Montant</th>
+                                <tr>
+                                    <th>Pompiste</th><th>Pompe</th><th>Qté (Gal)</th><th>Montant</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 <t t-foreach="doc.pump_line_ids" t-as="p">
                                     <tr>
-                                        <td><span t-field="p.pump_id"/></td>
-                                        <td><span t-field="p.product_id.name"/></td>
-                                        <td class="text-end"><span t-field="p.quantity_sold"/></td>
-                                        <td class="text-end"><span t-field="p.unit_price"/></td>
+                                        <td><span t-field="p.pompiste_id.name"/></td>
+                                        <td><span t-field="p.pump_name"/></td>
+                                        <td class="text-end"><span t-field="p.qty_sold"/></td>
                                         <td class="text-end"><span t-field="p.amount_sold"/></td>
                                     </tr>
                                 </t>
                             </tbody>
                         </table>
 
-                        <!-- Section 3 : Récapitulatif financier et écart -->
-                        <h3 class="mt-4">3. Récapitulatif Financier</h3>
-                        <table class="table table-sm" style="width: 50%; margin-left: auto;">
-                            <tr>
-                                <td><strong>Total Ventes Attendues :</strong></td>
-                                <td class="text-end"><span t-field="doc.expected_amount"/></td>
-                            </tr>
-                            <tr>
-                                <td><strong>Total Argent Compté :</strong></td>
-                                <td class="text-end"><span t-field="doc.counted_amount_total"/></td>
-                            </tr>
-                            <tr class="border-top table-active">
-                                <td><strong>Écart / Différence :</strong></td>
-                                <td class="text-end">
-                                    <strong><span t-field="doc.difference"/></strong>
-                                </td>
-                            </tr>
+                        <h3 class="mt32">Récapitulatif Financier</h3>
+                        <table class="table table-sm table-borderless" style="width: 50%;">
+                            <tr><td>Ventes Théoriques :</td><td class="text-end"><span t-field="doc.total_sales_expected"/></td></tr>
+                            <tr><td>Montant Réel Remis :</td><td class="text-end"><span t-field="doc.total_remittance"/></td></tr>
+                            <tr class="border-top"><td><strong>Écart (Short/Over) :</strong></td><td class="text-end"><strong><span t-field="doc.difference"/></strong></td></tr>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <!-- Template 2 : Rapport d'Inventaire -->
+    <template id="report_inventaire_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center">INVENTAIRE DES CUVES : <span t-field="doc.name"/></h2>
+                        <table class="table table-bordered mt32">
+                            <thead>
+                                <tr><th>Cuve</th><th>Produit</th><th>Ouverture</th><th>Fermeture</th><th>Stock Final</th></tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.tank_line_ids" t-as="t">
+                                    <tr>
+                                        <td><span t-field="t.tank_name"/></td>
+                                        <td><span t-field="t.product_id.name"/></td>
+                                        <td class="text-end"><span t-field="t.opening_qty"/></td>
+                                        <td class="text-end"><span t-field="t.closing_qty"/></td>
+                                        <td class="text-end"><span t-field="t.net_qty"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
                         </table>
                     </div>
                 </t>

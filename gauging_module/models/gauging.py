@@ -1,95 +1,149 @@
-from odoo import models, fields, api, _ 
+from odoo import models, fields, api, _
 
-class Gauging(models.Model):  # Définition du modèle principal
-    _name = 'gauging.gauging'  # Nom technique strict
-    _description = 'Fiche de Gauging'  # Description du modèle
-    _order = 'date desc'  # Tri par date décroissante
+class Gauging(models.Model):
+    _name = 'gauging.gauging'
+    _description = 'Fiche de Jaugeage et Décompte'
+    _order = 'date desc'
 
-    # --- Section Création ---
-    name = fields.Char(string='ID', required=True, copy=False, readonly=True, default=lambda self: _('Nouveau'))  # ID auto
-    date = fields.Datetime(string='Date', default=fields.Datetime.now, required=True)  # Date actuelle auto
-    user_id = fields.Many2one('res.users', string='User connecté', default=lambda self: self.env.user, readonly=True)  # Superviseur
-    state = fields.Selection([('draft', 'Brouillon'), ('validated', 'Validé')], default='draft', string="Statut")  # État de validation
+    # Informations d'en-tête (UX descriptive)
+    name = fields.Char(string='Référence du Rapport', required=True, readonly=True, default=lambda self: _('Nouveau'))
+    date = fields.Date(string='Date de l\'Opération', default=fields.Date.context_today, required=True)
+    supervisor_id = fields.Many2one('res.users', string='Superviseur Responsable', default=lambda self: self.env.user)
+    shift = fields.Selection([('am', 'Groupe AM (Matin)'), ('pm', 'Groupe PM (Soir)')], string='Rotation / Shift', required=True)
+    state = fields.Selection([('draft', 'Brouillon'), ('validated', 'Validé')], default='draft', string='État')
+    currency_rate = fields.Float(string='Taux de Change (1 USD = X HTG)', default=1.0)
 
-    # --- Section Relations One2many ---
-    tank_line_ids = fields.One2many('gauging.tank.line', 'gauging_id', string='Réservoirs')  # Lien jaugeage réservoirs
-    pump_line_ids = fields.One2many('gauging.pump.line', 'gauging_id', string='Lignes Pompes')  # Lien ventes pompes
-    check_line_ids = fields.One2many('gauging.check.line', 'gauging_id', string='Chèques')  # Lien liste chèques
-    credit_line_ids = fields.One2many('gauging.credit.line', 'gauging_id', string='Fiches de Crédit')  # Lien fiches crédit
+    # Relations principales
+    tank_line_ids = fields.One2many('gauging.tank.line', 'gauging_id', string='Lignes d\'Inventaire Cuves')
+    pump_line_ids = fields.One2many('gauging.pump.line', 'gauging_id', string='Relevés des Pompes')
+    disbursement_ids = fields.One2many('gauging.disbursement', 'gauging_id', string='Décaissements / Sorties')
+    coupon_line_ids = fields.One2many('gauging.coupon.line', 'gauging_id', string='Bons de Carburant')
+    credit_line_ids = fields.One2many('gauging.credit.line', 'gauging_id', string='Ventes à Crédit')
+    check_line_ids = fields.One2many('gauging.check.line', 'gauging_id', string='Chèques Reçus')
 
-    # --- Section Décompte Financier ---
-    cash_HTG = fields.Float(string='cash_HTG')  # Espèces en HTG
-    cash_USD = fields.Float(string='cash_USD')  # Espèces en USD
-    card_HTG = fields.Float(string='card_HTG')  # Carte en HTG
-    card_USD = fields.Float(string='card_USD')  # Carte en USD
-    coupon_1000_HTG = fields.Integer(string='coupon_1000_HTG')  # Nombre coupons 1000
-    coupon_500_HTG = fields.Integer(string='coupon_500_HTG')  # Nombre coupons 500
+    # Décompte des billets HTG (Détail exact de la Photo 4)
+    bill_1000 = fields.Integer(string='Billets de 1000 Gds')
+    bill_500 = fields.Integer(string='Billets de 500 Gds')
+    bill_250 = fields.Integer(string='Billets de 250 Gds')
+    bill_100 = fields.Integer(string='Billets de 100 Gds')
+    bill_50 = fields.Integer(string='Billets de 50 Gds')
+    bill_25 = fields.Integer(string='Billets de 25 Gds')
+    bill_10 = fields.Integer(string='Billets de 10 Gds')
+    coin_amount = fields.Float(string='Montant Monnaies / Pièces')
+    cash_usd = fields.Float(string='Cash en USD')
 
-    # --- Section Calculs Stockés ---
-    expected_amount = fields.Float(string='expected_amount', compute='_compute_totals', store=True)  # Total théorique ventes
-    counted_amount_total = fields.Float(string='counted_amount_total', compute='_compute_totals', store=True)  # Total réel compté
-    difference = fields.Float(string='difference', compute='_compute_totals', store=True, readonly=True)  # Écart (Readonly)
+    # Banques et Subvention (Photo 4)
+    tpe_unibk = fields.Float(string='TPE UNIBK')
+    tpe_sgbk = fields.Float(string='TPE SGBK')
+    tpe_bandari = fields.Float(string='TPE Bandari')
+    subsidy_amount = fields.Float(string='Montant Subvention')
 
-    @api.depends('pump_line_ids.amount_sold', 'cash_HTG', 'cash_USD', 'card_HTG', 'card_USD', 'coupon_1000_HTG', 'coupon_500_HTG', 'check_line_ids.amount', 'credit_line_ids.amount')
-    def _compute_totals(self):  # Calcul des totaux et de l'écart
-        for rec in self:  # Parcours des fiches
-            rec.expected_amount = sum(rec.pump_line_ids.mapped('amount_sold'))  # Somme des montants vendus aux pompes
-            total_cash = rec.cash_HTG + rec.cash_USD  # Somme des espèces
-            total_cards = rec.card_HTG + rec.card_USD  # Somme des cartes
-            total_coupons = (rec.coupon_1000_HTG * 1000) + (rec.coupon_500_HTG * 500)  # Somme des coupons
-            total_checks = sum(rec.check_line_ids.mapped('amount'))  # Somme des chèques
-            total_credits = sum(rec.credit_line_ids.mapped('amount'))  # Somme des fiches crédit
-            rec.counted_amount_total = total_cash + total_cards + total_coupons + total_checks + total_credits  # Total général compté
-            rec.difference = rec.counted_amount_total - rec.expected_amount  # Calcul final de l'écart
+    # Totaux Stockés
+    total_sales_expected = fields.Float(string='Ventes Attendues', compute='_compute_all_totals', store=True)
+    total_cash_htg = fields.Float(string='Total Cash HTG', compute='_compute_all_totals', store=True)
+    total_remittance = fields.Float(string='Total Réel Remis', compute='_compute_all_totals', store=True)
+    difference = fields.Float(string='Écart (Short/Over)', compute='_compute_all_totals', store=True)
+
+    @api.depends('pump_line_ids.amount_sold', 'bill_1000', 'bill_500', 'bill_250', 'bill_100', 'bill_50', 
+                 'bill_25', 'bill_10', 'coin_amount', 'cash_usd', 'currency_rate', 'tpe_unibk', 
+                 'tpe_sgbk', 'tpe_bandari', 'subsidy_amount', 'coupon_line_ids.amount', 
+                 'credit_line_ids.amount', 'check_line_ids.amount', 'disbursement_ids.amount')
+    def _compute_all_totals(self):
+        for rec in self:
+            # 1. Total théorique des ventes
+            rec.total_sales_expected = sum(rec.pump_line_ids.mapped('amount_sold'))
+            # 2. Total Cash Gourdes
+            htg = (rec.bill_1000 * 1000) + (rec.bill_500 * 500) + (rec.bill_250 * 250) + \
+                  (rec.bill_100 * 100) + (rec.bill_50 * 50) + (rec.bill_25 * 25) + \
+                  (rec.bill_10 * 10) + rec.coin_amount
+            rec.total_cash_htg = htg
+            # 3. Total Réel (Cash + USD + TPE + Bons + Crédits + Subvention - Dépenses)
+            others = rec.tpe_unibk + rec.tpe_sgbk + rec.tpe_bandari + rec.subsidy_amount + \
+                     sum(rec.coupon_line_ids.mapped('amount')) + \
+                     sum(rec.credit_line_ids.mapped('amount')) + \
+                     sum(rec.check_line_ids.mapped('amount'))
+            usd_in_htg = rec.cash_usd * rec.currency_rate
+            out_money = sum(rec.disbursement_ids.mapped('amount'))
+            rec.total_remittance = (htg + usd_in_htg + others) - out_money
+            # 4. Écart final
+            rec.difference = rec.total_remittance - rec.total_sales_expected
 
     @api.model
-    def create(self, vals):  # Surcharge de la création pour la séquence
-        if vals.get('name', _('Nouveau')) == _('Nouveau'):  # Vérifie si c'est une nouvelle fiche
-            vals['name'] = self.env['ir.sequence'].next_by_code('gauging.gauging') or _('Nouveau')  # Génère l'ID unique
-        return super(Gauging, self).create(vals)  # Appelle la création standard
+    def create(self, vals):
+        if vals.get('name', _('Nouveau')) == _('Nouveau'):
+            vals['name'] = self.env['ir.sequence'].next_by_code('gauging.gauging') or _('Nouveau')
+        return super(Gauging, self).create(vals)
 
-    def action_validate(self):  # Méthode de validation
-        self.write({'state': 'validated'})  # Change le statut pour verrouiller la fiche
+    def action_validate(self):
+        self.write({'state': 'validated'})
 
-class GaugingTankLine(models.Model):  # Modèle détail réservoirs
-    _name = 'gauging.tank.line'  # Nom technique
-    gauging_id = fields.Many2one('gauging.gauging', ondelete='cascade')  # Lien vers parent
-    tank_name = fields.Char(string='Réservoir')  # Nom du réservoir
-    start_inches = fields.Float(string='start_inches')  # Pouces début
-    end_inches = fields.Float(string='end_inches')  # Pouces fin
-    start_gallons = fields.Float(string='start_gallons')  # Gallons début
-    end_gallons = fields.Float(string='end_gallons')  # Gallons fin
-    variation_gallons = fields.Float(string='variation_gallons', compute='_compute_variation', store=True)  # Calcul variation
+class GaugingPumpLine(models.Model):
+    _name = 'gauging.pump.line'
+    _description = 'Ligne de Pompe'
+    gauging_id = fields.Many2one('gauging.gauging', ondelete='cascade')
+    pompiste_id = fields.Many2one('hr.employee', string='Pompiste')
+    pump_name = fields.Char(string='Pompe / Face')
+    product_id = fields.Many2one('product.product', string='Produit')
+    meter_opening = fields.Float(string='Ouverture Miteur')
+    meter_closing = fields.Float(string='Fermeture Miteur')
+    calibration_qty = fields.Float(string='Calibrage (Retour Cuve)')
+    price_unit = fields.Float(string='Prix Unitaire', related='product_id.list_price', store=True)
+    qty_sold = fields.Float(string='Gallons Vendus', compute='_compute_pump', store=True)
+    amount_sold = fields.Float(string='Montant Vente', compute='_compute_pump', store=True)
 
-    @api.depends('start_gallons', 'end_gallons')
-    def _compute_variation(self):  # Calcul de la variation volume
-        for line in self:  # Pour chaque ligne
-            line.variation_gallons = line.end_gallons - line.start_gallons  # Soustraction gallons fin - début
+    @api.depends('meter_opening', 'meter_closing', 'calibration_qty', 'price_unit')
+    def _compute_pump(self):
+        for line in self:
+            line.qty_sold = line.meter_closing - line.meter_opening - line.calibration_qty
+            line.amount_sold = line.qty_sold * line.price_unit
 
-class GaugingPumpLine(models.Model):  # Modèle détail pompes
-    _name = 'gauging.pump.line'  # Nom technique
-    gauging_id = fields.Many2one('gauging.gauging', ondelete='cascade')  # Lien vers parent
-    product_id = fields.Many2one('product.template', string='product_id')  # Article carburant
-    pump_id = fields.Char(string='pump_id')  # ID de la pompe/face
-    employee_id = fields.Many2one('hr.employee', string='employee_id')  # Employé responsable
-    start_counter = fields.Float(string='start_counter')  # Compteur début
-    end_counter = fields.Float(string='end_counter')  # Compteur fin
-    unit_price = fields.Float(string='unit_price', related='product_id.list_price', store=True)  # Prix unitaire auto
-    quantity_sold = fields.Float(string='quantity_sold', compute='_compute_sold', store=True)  # Qté vendue calculée
-    amount_sold = fields.Float(string='amount_sold', compute='_compute_sold', store=True)  # Montant vendu calculé
+class GaugingTankLine(models.Model):
+    _name = 'gauging.tank.line'
+    _description = 'Stock Cuve'
+    gauging_id = fields.Many2one('gauging.gauging', ondelete='cascade')
+    tank_name = fields.Char(string='Nom de la Cuve')
+    product_id = fields.Many2one('product.product', string='Produit')
+    opening_qty = fields.Float(string='Ouverture Stock')
+    closing_qty = fields.Float(string='Fermeture Stock')
+    net_qty = fields.Float(string='Gallons en Stock', compute='_compute_tank', store=True)
 
-    @api.depends('start_counter', 'end_counter', 'unit_price')
-    def _compute_sold(self):  # Calcul des ventes par pompe
-        for line in self:  # Pour chaque pompe
-            line.quantity_sold = line.end_counter - line.start_counter  # Différence compteurs
-            line.amount_sold = line.quantity_sold * line.unit_price  # Multiplication par prix unitaire
+    @api.depends('opening_qty', 'closing_qty')
+    def _compute_tank(self):
+        for line in self:
+            line.net_qty = line.closing_qty
 
-class GaugingCheckLine(models.Model):  # Modèle custom chèques
-    _name = 'gauging.check.line'  # Nom technique
-    gauging_id = fields.Many2one('gauging.gauging', ondelete='cascade')  # Lien vers parent
-    amount = fields.Float(string='Montant')  # Valeur du chèque
+class GaugingDisbursement(models.Model):
+    _name = 'gauging.disbursement'
+    _description = 'Sortie de Caisse'
+    gauging_id = fields.Many2one('gauging.gauging', ondelete='cascade')
+    beneficiary = fields.Char(string='À qui / Raison')
+    authorized_by = fields.Char(string='Autorisé par')
+    amount = fields.Float(string='Montant Décaissé')
 
-class GaugingCreditLine(models.Model):  # Modèle custom crédits
-    _name = 'gauging.credit.line'  # Nom technique
-    gauging_id = fields.Many2one('gauging.gauging', ondelete='cascade')  # Lien vers parent
-    amount = fields.Float(string='Montant')  # Valeur du bon de crédit
+class GaugingCouponLine(models.Model):
+    _name = 'gauging.coupon.line'
+    gauging_id = fields.Many2one('gauging.gauging', ondelete='cascade')
+    name = fields.Selection([('national', 'Bon National'), ('total', 'Bon Total')], string='Type de Bon')
+    qty = fields.Integer(string='Quantité')
+    unit_value = fields.Float(string='Valeur')
+    amount = fields.Float(string='Montant Total', compute='_compute_amount', store=True)
+
+    @api.depends('qty', 'unit_value')
+    def _compute_amount(self):
+        for line in self:
+            line.amount = line.qty * line.unit_value
+
+class GaugingCreditLine(models.Model):
+    _name = 'gauging.credit.line'
+    gauging_id = fields.Many2one('gauging.gauging', ondelete='cascade')
+    customer_name = fields.Char(string='Nom du Client')
+    invoice_ref = fields.Char(string='N° Fiche Crédit')
+    product_id = fields.Many2one('product.product', string='Produit')
+    qty = fields.Float(string='Qté Gallons')
+    amount = fields.Float(string='Montant Crédit')
+
+class GaugingCheckLine(models.Model):
+    _name = 'gauging.check.line'
+    gauging_id = fields.Many2one('gauging.gauging', ondelete='cascade')
+    bank_name = fields.Char(string='Banque')
+    amount = fields.Float(string='Montant Chèque')
