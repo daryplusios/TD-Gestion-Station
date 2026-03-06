@@ -1,5 +1,5 @@
 {
-    'name': 'Gestion Station',
+    'name': 'TD Gestion Station',
     'version': '18.0.1.2.0',
     'category': 'Inventory',
     'summary': 'Gestion complète des jaugeages, inventaires de cuves et décomptes financiers.',
