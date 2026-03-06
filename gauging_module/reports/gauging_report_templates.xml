@@ -1,22 +1,22 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- Template 1 : Rapport de Décompte Financier -->
+    <!-- Template Rapport de Décompte -->
     <template id="report_decompte_template">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
                 <t t-call="web.external_layout">
                     <div class="page">
                         <h2 class="text-center">RAPPORT DE DÉCOMPTE : <span t-field="doc.name"/></h2>
-                        <div class="row mt32 mb32">
+                        <div class="row mt-4">
                             <div class="col-6"><strong>Superviseur :</strong> <span t-field="doc.supervisor_id.name"/></div>
-                            <div class="col-6"><strong>Date :</strong> <span t-field="doc.date"/> | <strong>Rotation :</strong> <span t-field="doc.shift"/></div>
+                            <div class="col-6 text-end"><strong>Date :</strong> <span t-field="doc.date"/> | <strong>Rotation :</strong> <span t-field="doc.shift"/></div>
                         </div>
 
-                        <h3>Ventes Pompes</h3>
+                        <h4 class="mt-4">Relevés des Pompes</h4>
                         <table class="table table-sm table-bordered">
                             <thead>
-                                <tr>
-                                    <th>Pompiste</th><th>Pompe</th><th>Qté (Gal)</th><th>Montant</th>
+                                <tr class="table-active">
+                                    <th>Pompiste</th><th>Pompe</th><th>Produit</th><th>Quantité Gallons</th><th>Montant Vendu</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -24,35 +24,50 @@
                                     <tr>
                                         <td><span t-field="p.pompiste_id.name"/></td>
                                         <td><span t-field="p.pump_name"/></td>
+                                        <td><span t-field="p.product_id.name"/></td>
                                         <td class="text-end"><span t-field="p.qty_sold"/></td>
-                                        <td class="text-end"><span t-field="p.amount_sold"/></td>
+                                        <td class="text-end"><span t-field="p.amount_sold" t-options='{"widget": "monetary", "display_currency": doc.supervisor_id.company_id.currency_id}'/></td>
                                     </tr>
                                 </t>
                             </tbody>
                         </table>
 
-                        <h3 class="mt32">Récapitulatif Financier</h3>
-                        <table class="table table-sm table-borderless" style="width: 50%;">
-                            <tr><td>Ventes Théoriques :</td><td class="text-end"><span t-field="doc.total_sales_expected"/></td></tr>
-                            <tr><td>Montant Réel Remis :</td><td class="text-end"><span t-field="doc.total_remittance"/></td></tr>
-                            <tr class="border-top"><td><strong>Écart (Short/Over) :</strong></td><td class="text-end"><strong><span t-field="doc.difference"/></strong></td></tr>
-                        </table>
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <h4>Détail du Cash Gourdes</h4>
+                                <table class="table table-sm table-bordered">
+                                    <tr><td>1000 Gourdes x <t t-esc="doc.bill_1000"/></td><td class="text-end"><t t-esc="doc.bill_1000 * 1000"/></td></tr>
+                                    <tr><td>500 Gourdes x <t t-esc="doc.bill_500"/></td><td class="text-end"><t t-esc="doc.bill_500 * 500"/></td></tr>
+                                    <tr><td>250 Gourdes x <t t-esc="doc.bill_250"/></td><td class="text-end"><t t-esc="doc.bill_250 * 250"/></td></tr>
+                                    <tr><td>100 Gourdes x <t t-esc="doc.bill_100"/></td><td class="text-end"><t t-esc="doc.bill_100 * 100"/></td></tr>
+                                    <tr class="table-info"><td><strong>TOTAL CASH GOURDES</strong></td><td class="text-end"><strong><span t-field="doc.total_cash_htg"/></strong></td></tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <h4>Synthèse Finale</h4>
+                                <table class="table table-sm">
+                                    <tr><td>Total Ventes Théoriques :</td><td class="text-end"><span t-field="doc.total_sales_expected"/></td></tr>
+                                    <tr><td>Total Montant Réel Remis :</td><td class="text-end"><span t-field="doc.total_remittance"/></td></tr>
+                                    <tr class="table-active"><td><strong>ÉCART DE CAISSE :</strong></td><td class="text-end"><strong><span t-field="doc.difference"/></strong></td></tr>
+                                </table>
+                            </div>
+                        </div>
                     </div>
                 </t>
             </t>
         </t>
     </template>
 
-    <!-- Template 2 : Rapport d'Inventaire -->
+    <!-- Template Rapport Inventaire -->
     <template id="report_inventaire_template">
         <t t-call="web.html_container">
             <t t-foreach="docs" t-as="doc">
                 <t t-call="web.external_layout">
                     <div class="page">
-                        <h2 class="text-center">INVENTAIRE DES CUVES : <span t-field="doc.name"/></h2>
-                        <table class="table table-bordered mt32">
+                        <h2 class="text-center">INVENTAIRE DES STOCKS : <span t-field="doc.name"/></h2>
+                        <table class="table table-bordered mt-4">
                             <thead>
-                                <tr><th>Cuve</th><th>Produit</th><th>Ouverture</th><th>Fermeture</th><th>Stock Final</th></tr>
+                                <tr class="table-active"><th>Cuve</th><th>Produit</th><th>Ouverture</th><th>Fermeture</th><th>Quantité Finale</th></tr>
                             </thead>
                             <tbody>
                                 <t t-foreach="doc.tank_line_ids" t-as="t">

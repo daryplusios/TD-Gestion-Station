@@ -1,9 +1,9 @@
 {
-    'name': 'TD Jaugeage et Décompte',
-    'version': '18.0.1.0',
+    'name': 'Gestion Station',
+    'version': '18.0.1.2.0',
     'category': 'Inventory',
-    'summary': 'Gestion complète des rotations, pompes, cuves et réconciliation financière',
-    'description': 'Ce module permet de gérer les ventes de carburants, les stocks de cuves et le décompte financier journalier.',
+    'summary': 'Gestion complète des jaugeages, inventaires de cuves et décomptes financiers.',
+    'description': 'Module professionnel pour le suivi des ventes par pompe et la réconciliation de caisse.',
     'author': 'Transition Digitale',
     'website': 'https://transitiondigitale.tech',
     'depends': ['base', 'product', 'hr'],
