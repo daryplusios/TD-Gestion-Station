@@ -1,13 +1,13 @@
 {
-    'name': 'TD Gestion Station',
-    'version': '18.0.1.2.0',
+    'name': 'Gestion Station',
+    'version': '18.0.1.4.0',
     'category': 'Inventory',
     'summary': 'Gestion complète des jaugeages, inventaires de cuves et décomptes financiers.',
     'description': 'Module professionnel pour le suivi des ventes par pompe et la réconciliation de caisse.',
     'author': 'Transition Digitale',
     'website': 'https://transitiondigitale.tech',
-    'depends': ['base', 'product', 'hr'],
-    'data': [
+    'depends':['base', 'product', 'hr'],
+    'data':[
         'security/ir.model.access.csv',
         'data/ir_sequence_data.xml',
         'views/gauging_views.xml',

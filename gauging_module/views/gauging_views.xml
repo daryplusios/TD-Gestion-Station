@@ -6,7 +6,7 @@
         <field name="arch" type="xml">
             <form>
                 <header>
-                    <button name="action_validate" string="Valider le Shift" type="object" class="oe_highlight" invisible="state == 'validated'"/>
+                    <button name="action_validate" string="Valider le Rapport" type="object" class="oe_highlight" invisible="state == 'validated'"/>
                     <field name="state" widget="statusbar"/>
                 </header>
                 <sheet>
@@ -15,32 +15,43 @@
                         <h1><field name="name"/></h1>
                     </div>
                     <group>
-                        <group string="Détails de la Rotation">
+                        <group string="Configuration de la Rotation">
                             <field name="date" readonly="state == 'validated'"/>
                             <field name="shift" widget="radio" options="{'horizontal': true}" readonly="state == 'validated'"/>
                             <field name="supervisor_id" readonly="1"/>
-                            <field name="currency_rate" string="Taux de Change USD" readonly="state == 'validated'"/>
+                            <field name="currency_rate" string="Taux de Change USD en Gourdes" readonly="state == 'validated'"/>
                         </group>
-                        <group string="Résumé des Résultats" class="oe_subtotal_footer">
-                            <field name="total_sales_expected" widget="monetary" string="Ventes Théoriques"/>
+                        <group string="Résumé Financier Global" class="oe_subtotal_footer">
+                            <field name="total_sales_expected" widget="monetary" string="Ventes Théoriques Totales"/>
                             <field name="total_remittance" widget="monetary" string="Montant Réel Remis"/>
-                            <field name="difference" widget="monetary" decoration-danger="difference &lt; 0" decoration-success="difference &gt;= 0" string="Écart de Caisse final"/>
+                            <field name="difference" widget="monetary" decoration-danger="difference &lt; 0" decoration-success="difference &gt;= 0" string="Écart de Caisse Final"/>
                         </group>
                     </group>
                     <notebook>
-                        <page string="Ventes Pompes">
-                            <field name="pump_line_ids" readonly="state == 'validated'">
-                                <list editable="bottom">
-                                    <field name="pompiste_id"/>
-                                    <field name="pump_name"/>
-                                    <field name="product_id"/>
-                                    <field name="meter_opening" string="Index Ouverture"/>
-                                    <field name="meter_closing" string="Index Fermeture"/>
-                                    <field name="qty_sold" string="Quantité de Gallons"/>
-                                    <field name="price_unit" string="Prix Unitaire du Gallon"/>
-                                    <field name="amount_sold" sum="Total des Ventes"/>
-                                </list>
-                            </field>
+                        <page string="Ventes Pompes et Boutique">
+                            <group string="Ventes de Carburant (Pompes)">
+                                <field name="pump_line_ids" nolabel="1" readonly="state == 'validated'">
+                                    <list editable="bottom">
+                                        <field name="pompiste_id"/>
+                                        <field name="pump_name"/>
+                                        <field name="product_id"/>
+                                        <field name="meter_opening" string="Index Ouverture"/>
+                                        <field name="meter_closing" string="Index Fermeture"/>
+                                        <field name="qty_sold" string="Quantité de Gallons" readonly="1"/>
+                                        <field name="price_unit" string="Prix Unitaire du Gallon"/>
+                                        <field name="amount_sold" sum="Total Ventes Pompes" readonly="1"/>
+                                    </list>
+                                </field>
+                            </group>
+                            <group string="Ventes Boutique et Divers">
+                                <field name="other_sale_ids" nolabel="1" readonly="state == 'validated'">
+                                    <list editable="bottom">
+                                        <field name="name"/>
+                                        <field name="qty" string="Quantité Vendue"/>
+                                        <field name="amount" sum="Total Ventes Diverses"/>
+                                    </list>
+                                </field>
+                            </group>
                         </page>
                         <page string="Billets et Cash">
                             <group>
@@ -55,8 +66,8 @@
                                     <field name="coin_amount" string="Montant des Monnaies"/>
                                     <field name="total_cash_htg" string="TOTAL CASH EN GOURDES" class="oe_read_only"/>
                                 </group>
-                                <group string="Autres Modes de Paiement">
-                                    <field name="cash_usd" string="Dollars USD en Espèces"/>
+                                <group string="Dollars et Terminaux de Paiement">
+                                    <field name="cash_usd" string="Montant Dollars USD Cash"/>
                                     <field name="tpe_unibk" string="Terminal UNIBK"/>
                                     <field name="tpe_sgbk" string="Terminal SGBK"/>
                                     <field name="tpe_bandari" string="Terminal Bandari"/>
@@ -64,12 +75,14 @@
                                 </group>
                             </group>
                         </page>
+                        
+                        <!-- L'ONGLET DES BONS, CRÉDITS ET CHÈQUES -->
                         <page string="Bons, Crédits et Chèques">
                             <group string="Bons de Carburant">
                                 <field name="coupon_line_ids" nolabel="1" readonly="state == 'validated'">
                                     <list editable="bottom">
                                         <field name="name"/>
-                                        <field name="qty" string="Quantité"/>
+                                        <field name="qty" string="Quantité de Bons"/>
                                         <field name="unit_value" string="Valeur Unitaire"/>
                                         <field name="amount" sum="Total des Bons"/>
                                     </list>
@@ -78,26 +91,38 @@
                             <group string="Ventes à Crédit">
                                 <field name="credit_line_ids" nolabel="1" readonly="state == 'validated'">
                                     <list editable="bottom">
-                                        <field name="customer_name" string="Client"/>
-                                        <field name="reference" string="Numéro de Fiche"/>
-                                        <field name="amount" sum="Total du Crédit"/>
+                                        <field name="customer_name" string="Nom du Client"/>
+                                        <field name="reference" string="Numéro de la Fiche"/>
+                                        <field name="amount" sum="Total des Crédits"/>
                                     </list>
                                 </field>
                             </group>
+                            
+                            <!-- VOICI LA SECTION DES CHÈQUES -->
+                            <group string="Chèques et Transferts Bancaires">
+                                <field name="check_line_ids" nolabel="1" readonly="state == 'validated'">
+                                    <list editable="bottom">
+                                        <field name="bank" string="Banque Émettrice"/>
+                                        <field name="amount" sum="Total des Chèques"/>
+                                    </list>
+                                </field>
+                            </group>
+                            
                         </page>
-                        <page string="Stocks et Décaissements">
+                        
+                        <page string="Cuves et Décaissements">
                             <group string="Inventaire des Cuves">
                                 <field name="tank_line_ids" nolabel="1" readonly="state == 'validated'">
                                     <list editable="bottom">
                                         <field name="tank_name" string="Nom de la Cuve"/>
-                                        <field name="product_id" string="Produit"/>
-                                        <field name="opening_qty" string="Ouverture"/>
-                                        <field name="closing_qty" string="Fermeture"/>
+                                        <field name="product_id" string="Produit Carburant"/>
+                                        <field name="opening_qty" string="Quantité à l'Ouverture"/>
+                                        <field name="closing_qty" string="Quantité à la Fermeture"/>
                                         <field name="net_qty" string="Quantité en Stock"/>
                                     </list>
                                 </field>
                             </group>
-                            <group string="Sorties de Caisse">
+                            <group string="Sorties de Caisse (Décaissements)">
                                 <field name="disbursement_ids" nolabel="1" readonly="state == 'validated'">
                                     <list editable="bottom">
                                         <field name="beneficiary" string="Raison ou Bénéficiaire"/>
@@ -112,18 +137,13 @@
         </field>
     </record>
 
-    <!-- Action pour ouvrir les fiches -->
+    <!-- Action et Menus -->
     <record id="action_station_gauging" model="ir.actions.act_window">
         <field name="name">Fiches de Jaugeage</field>
         <field name="res_model">gauging.gauging</field>
         <field name="view_mode">list,form</field>
     </record>
 
-    <!-- Menu Principal sur le Dashboard -->
     <menuitem id="menu_station_management" name="Gestion Station" sequence="1"/>
-    
-    <!-- Sous-Menus -->
     <menuitem id="menu_station_gauging" name="Jaugeages" parent="menu_station_management" sequence="10" action="action_station_gauging"/>
-    <menuitem id="menu_station_report_decompte" name="Rapport Décompte" parent="menu_station_management" sequence="20" action="action_station_gauging"/>
-    <menuitem id="menu_station_report_inventaire" name="Rapport d'inventaire" parent="menu_station_management" sequence="30" action="action_station_gauging"/>
 </odoo>
