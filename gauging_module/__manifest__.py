@@ -1,6 +1,6 @@
 {
-    'name': 'TD Gauging',
-    'version': '18.0.1.4.0',
+    'name': 'TD Gestion de Station',
+    'version': '18.0.1.5.0',
     'category': 'Inventory',
     'summary': 'Gestion complète des jaugeages, inventaires de cuves et décomptes financiers.',
     'description': 'Module professionnel pour le suivi des ventes par pompe et la réconciliation de caisse.',

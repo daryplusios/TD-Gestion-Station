@@ -5,14 +5,14 @@ class Gauging(models.Model):
     _description = 'Fiche de Jaugeage et de Décompte Financier'
     _order = 'date desc'
 
-    name = fields.Char(string='Référence du Rapport', required=True, readonly=True, default=lambda self: _('Nouveau'))
+    # Le champ 'name' n'est plus readonly en Python. Vous pouvez taper votre propre référence.
+    name = fields.Char(string='Référence du Rapport', required=True, copy=False, default=lambda self: _('Nouveau'))
     date = fields.Date(string='Date de l\'Opération', default=fields.Date.context_today, required=True)
     supervisor_id = fields.Many2one('res.users', string='Superviseur Responsable', default=lambda self: self.env.user)
     shift = fields.Selection([('am', 'Groupe Matin (AM)'), ('pm', 'Groupe Soir (PM)')], string='Rotation de Travail', required=True)
     state = fields.Selection([('draft', 'Brouillon'), ('validated', 'Validé')], default='draft', string='État du Rapport')
     currency_rate = fields.Float(string='Taux de Change (Valeur d\'un Dollar en Gourdes)', default=1.0)
 
-    # Relations principales
     tank_line_ids = fields.One2many('gauging.tank.line', 'gauging_id', string='Lignes d\'Inventaire des Cuves')
     pump_line_ids = fields.One2many('gauging.pump.line', 'gauging_id', string='Relevés des Compteurs de Pompes')
     other_sale_ids = fields.One2many('gauging.other.sale', 'gauging_id', string='Ventes Boutique et Autres')
@@ -21,7 +21,6 @@ class Gauging(models.Model):
     check_line_ids = fields.One2many('gauging.check.line', 'gauging_id', string='Détails des Chèques')
     disbursement_ids = fields.One2many('gauging.disbursement', 'gauging_id', string='Décaissements et Dépenses')
 
-    # Grille de décompte des billets
     bill_1000 = fields.Integer(string='Nombre de Billets de 1000 Gourdes')
     bill_500 = fields.Integer(string='Nombre de Billets de 500 Gourdes')
     bill_250 = fields.Integer(string='Nombre de Billets de 250 Gourdes')
@@ -32,13 +31,11 @@ class Gauging(models.Model):
     coin_amount = fields.Float(string='Montant Total des Monnaies et Pièces')
     cash_usd = fields.Float(string='Montant Total des Dollars Cash (USD)')
 
-    # Terminaux et Subventions
     tpe_unibk = fields.Float(string='Terminal de Paiement UNIBK')
     tpe_sgbk = fields.Float(string='Terminal de Paiement SGBK')
     tpe_bandari = fields.Float(string='Terminal de Paiement Bandari')
     subsidy_amount = fields.Float(string='Montant de la Subvention État')
 
-    # Totaux
     total_sales_expected = fields.Float(string='Total des Ventes Théoriques', compute='_compute_all_totals', store=True)
     total_cash_htg = fields.Float(string='Total du Cash en Gourdes', compute='_compute_all_totals', store=True)
     total_remittance = fields.Float(string='Montant Net Réel Rapporté', compute='_compute_all_totals', store=True)
@@ -50,16 +47,13 @@ class Gauging(models.Model):
                  'credit_line_ids.amount', 'check_line_ids.amount', 'disbursement_ids.amount')
     def _compute_all_totals(self):
         for rec in self:
-            # 1. Total Attendu
             rec.total_sales_expected = sum(rec.pump_line_ids.mapped('amount_sold')) + sum(rec.other_sale_ids.mapped('amount'))
             
-            # 2. Total Cash HTG
             cash_htg = (rec.bill_1000 * 1000) + (rec.bill_500 * 500) + (rec.bill_250 * 250) + \
                        (rec.bill_100 * 100) + (rec.bill_50 * 50) + (rec.bill_25 * 25) + \
                        (rec.bill_10 * 10) + rec.coin_amount
             rec.total_cash_htg = cash_htg
             
-            # 3. Total Réel Remis
             usd_en_htg = rec.cash_usd * rec.currency_rate
             autres_entrees = rec.tpe_unibk + rec.tpe_sgbk + rec.tpe_bandari + rec.subsidy_amount + \
                              sum(rec.coupon_line_ids.mapped('amount')) + \
@@ -67,14 +61,20 @@ class Gauging(models.Model):
                              sum(rec.check_line_ids.mapped('amount'))
             sorties = sum(rec.disbursement_ids.mapped('amount'))
             
-            # Le cash pris pour les dépenses (sorties) est rajouté au total pour équilibrer la caisse
             rec.total_remittance = cash_htg + usd_en_htg + autres_entrees + sorties
             rec.difference = rec.total_remittance - rec.total_sales_expected
+
+    @api.model
+    def create(self, vals):
+        if vals.get('name', _('Nouveau')) == _('Nouveau'):
+            vals['name'] = self.env['ir.sequence'].next_by_code('gauging.gauging') or _('Nouveau')
+        return super(Gauging, self).create(vals)
 
     def action_validate(self):
         self.write({'state': 'validated'})
 
 
+# --- MODÈLES DES LIGNES ---
 class GaugingPumpLine(models.Model):
     _name = 'gauging.pump.line'
     _description = 'Ligne de Relevé de Pompe'
@@ -99,7 +99,6 @@ class GaugingPumpLine(models.Model):
             line.qty_sold = line.meter_closing - line.meter_opening
             line.amount_sold = line.qty_sold * line.price_unit
 
-
 class GaugingOtherSale(models.Model):
     _name = 'gauging.other.sale'
     _description = 'Ligne de Vente Boutique'
@@ -107,7 +106,6 @@ class GaugingOtherSale(models.Model):
     name = fields.Char(string='Description du Produit', required=True)
     qty = fields.Float(string='Quantité Vendue', default=1.0)
     amount = fields.Float(string='Montant Total de la Vente', required=True)
-
 
 class GaugingTankLine(models.Model):
     _name = 'gauging.tank.line'
@@ -124,7 +122,6 @@ class GaugingTankLine(models.Model):
         for line in self:
             line.net_qty = line.closing_qty
 
-
 class GaugingCouponLine(models.Model):
     _name = 'gauging.coupon.line'
     _description = 'Ligne de Bon Carburant'
@@ -139,7 +136,6 @@ class GaugingCouponLine(models.Model):
         for line in self:
             line.amount = line.qty * line.unit_value
 
-
 class GaugingCreditLine(models.Model):
     _name = 'gauging.credit.line'
     _description = 'Ligne de Vente à Crédit'
@@ -148,14 +144,12 @@ class GaugingCreditLine(models.Model):
     reference = fields.Char(string='Référence de la Fiche')
     amount = fields.Float(string='Montant Total du Crédit')
 
-
 class GaugingCheckLine(models.Model):
     _name = 'gauging.check.line'
     _description = 'Ligne de Chèque'
     gauging_id = fields.Many2one('gauging.gauging', ondelete='cascade')
-    bank = fields.Char(string='Banque Émettrice du Chèque')
+    bank = fields.Char(string='Banque Émettrice')
     amount = fields.Float(string='Montant du Chèque')
-
 
 class GaugingDisbursement(models.Model):
     _name = 'gauging.disbursement'
