@@ -1,0 +1,21 @@
+{
+    'name': 'TD Gestion de Station',
+    'version': '18.0.1.5.0',
+    'category': 'Inventory',
+    'summary': 'Gestion complète des jaugeages, inventaires de cuves et décomptes financiers.',
+    'description': 'Module professionnel pour le suivi des ventes par pompe et la réconciliation de caisse.',
+    'author': 'Transition Digitale',
+    'website': 'https://transitiondigitale.tech',
+    'depends':['base', 'product', 'hr'],
+    'data':[
+        'security/ir.model.access.csv',
+        'data/ir_sequence_data.xml',
+        'views/gauging_views.xml',
+        'reports/gauging_reports.xml',
+        'reports/gauging_report_templates.xml',
+    ],
+    'installable': True,
+    'application': True,
+    'auto_install': False,
+    'license': 'LGPL-3',
+}

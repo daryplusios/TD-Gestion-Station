@@ -1,0 +1,128 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <template id="report_decompte_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center">RAPPORT DE DÉCOMPTE : <span t-field="doc.name"/></h2>
+                        <div class="row mt-4">
+                            <div class="col-6"><strong>Superviseur :</strong> <span t-field="doc.supervisor_id.name"/></div>
+                            <div class="col-6 text-end"><strong>Date :</strong> <span t-field="doc.date"/> | <span t-field="doc.shift"/></div>
+                        </div>
+
+                        <h4 class="mt-4">1. Relevés des Pompes et Ventes</h4>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr class="table-active">
+                                    <th>Pompiste</th><th>Pompe</th><th>Produit</th><th>Quantité de Gallons</th><th>Prix Unitaire</th><th>Montant Vendu</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.pump_line_ids" t-as="p">
+                                    <tr>
+                                        <td><span t-field="p.pompiste_id.name"/></td>
+                                        <td><span t-field="p.pump_name"/></td>
+                                        <td><span t-field="p.product_id.name"/></td>
+                                        <td class="text-end"><span t-field="p.qty_sold"/></td>
+                                        <td class="text-end"><span t-field="p.price_unit"/></td>
+                                        <td class="text-end"><span t-field="p.amount_sold"/></td>
+                                    </tr>
+                                </t>
+                                <t t-foreach="doc.other_sale_ids" t-as="o">
+                                    <tr>
+                                        <td colspan="5"><strong>Boutique / Divers : </strong> <span t-field="o.name"/></td>
+                                        <td class="text-end"><span t-field="o.amount"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+
+                        <h4 class="mt-4">2. Moyens de Paiements Autres que Cash</h4>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr class="table-active">
+                                    <th>Chèques</th><th>Crédits Clients</th><th>Bons de Carburant</th><th>Sorties / Décaissements</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>
+                                        <t t-foreach="doc.check_line_ids" t-as="chk">
+                                            <div><span t-field="chk.bank"/> : <span t-field="chk.amount"/></div>
+                                        </t>
+                                    </td>
+                                    <td>
+                                        <t t-foreach="doc.credit_line_ids" t-as="cred">
+                                            <div><span t-field="cred.customer_name"/> : <span t-field="cred.amount"/></div>
+                                        </t>
+                                    </td>
+                                    <td>
+                                        <t t-foreach="doc.coupon_line_ids" t-as="coup">
+                                            <div><span t-field="coup.name"/> : <span t-field="coup.amount"/></div>
+                                        </t>
+                                    </td>
+                                    <td>
+                                        <t t-foreach="doc.disbursement_ids" t-as="disb">
+                                            <div><span t-field="disb.beneficiary"/> : <span t-field="disb.amount"/></div>
+                                        </t>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+
+                        <div class="row mt-4">
+                            <div class="col-6">
+                                <h4>3. Détail du Cash Gourdes</h4>
+                                <table class="table table-sm table-bordered">
+                                    <tr><td>1000 Gourdes x <t t-esc="doc.bill_1000"/></td><td class="text-end"><t t-esc="doc.bill_1000 * 1000"/></td></tr>
+                                    <tr><td>500 Gourdes x <t t-esc="doc.bill_500"/></td><td class="text-end"><t t-esc="doc.bill_500 * 500"/></td></tr>
+                                    <tr><td>250 Gourdes x <t t-esc="doc.bill_250"/></td><td class="text-end"><t t-esc="doc.bill_250 * 250"/></td></tr>
+                                    <tr><td>100 Gourdes x <t t-esc="doc.bill_100"/></td><td class="text-end"><t t-esc="doc.bill_100 * 100"/></td></tr>
+                                    <tr><td>Monnaies</td><td class="text-end"><span t-field="doc.coin_amount"/></td></tr>
+                                    <tr class="table-info"><td><strong>TOTAL CASH GOURDES</strong></td><td class="text-end"><strong><span t-field="doc.total_cash_htg"/></strong></td></tr>
+                                </table>
+                            </div>
+                            <div class="col-6">
+                                <h4>4. Synthèse Finale de Caisse</h4>
+                                <table class="table table-sm">
+                                    <tr><td>Total Ventes Théoriques :</td><td class="text-end"><span t-field="doc.total_sales_expected"/></td></tr>
+                                    <tr><td>Total Montant Réel Remis :</td><td class="text-end"><span t-field="doc.total_remittance"/></td></tr>
+                                    <tr class="table-active"><td><strong>ÉCART DE CAISSE FINAL :</strong></td><td class="text-end"><strong><span t-field="doc.difference"/></strong></td></tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+
+    <template id="report_inventaire_template">
+        <t t-call="web.html_container">
+            <t t-foreach="docs" t-as="doc">
+                <t t-call="web.external_layout">
+                    <div class="page">
+                        <h2 class="text-center">INVENTAIRE DES STOCKS : <span t-field="doc.name"/></h2>
+                        <table class="table table-bordered mt-4">
+                            <thead>
+                                <tr class="table-active"><th>Nom de la Cuve</th><th>Produit</th><th>Quantité Ouverture</th><th>Quantité Fermeture</th><th>Quantité Finale en Stock</th></tr>
+                            </thead>
+                            <tbody>
+                                <t t-foreach="doc.tank_line_ids" t-as="t">
+                                    <tr>
+                                        <td><span t-field="t.tank_name"/></td>
+                                        <td><span t-field="t.product_id.name"/></td>
+                                        <td class="text-end"><span t-field="t.opening_qty"/></td>
+                                        <td class="text-end"><span t-field="t.closing_qty"/></td>
+                                        <td class="text-end"><span t-field="t.net_qty"/></td>
+                                    </tr>
+                                </t>
+                            </tbody>
+                        </table>
+                    </div>
+                </t>
+            </t>
+        </t>
+    </template>
+</odoo>

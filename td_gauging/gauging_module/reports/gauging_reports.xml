@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<odoo>
+    <record id="action_report_decompte" model="ir.actions.report">
+        <field name="name">Rapport de Décompte</field>
+        <field name="model">gauging.gauging</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">gauging_module.report_decompte_template</field>
+        <field name="report_file">gauging_module.report_decompte_template</field>
+        <field name="binding_model_id" ref="model_gauging_gauging"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <record id="action_report_inventaire" model="ir.actions.report">
+        <field name="name">Rapport d'Inventaire</field>
+        <field name="model">gauging.gauging</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">gauging_module.report_inventaire_template</field>
+        <field name="report_file">gauging_module.report_inventaire_template</field>
+        <field name="binding_model_id" ref="model_gauging_gauging"/>
+        <field name="binding_type">report</field>
+    </record>
+</odoo>
