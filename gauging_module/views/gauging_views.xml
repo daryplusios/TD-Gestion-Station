@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
-    <!-- VUE LISTE : C'est ce que vous voyez "au dehors" -->
+    <!-- 1. VUES PRINCIPALES (JAUGEAGE INDIVIDUEL) -->
     <record id="view_gauging_list" model="ir.ui.view">
         <field name="name">gauging.gauging.list</field>
         <field name="model">gauging.gauging</field>
         <field name="arch" type="xml">
-            <!-- J'ai ajouté exactement les colonnes que vous avez demandées -->
             <list string="Fiches de Jaugeage">
                 <field name="name" string="Référence"/>
                 <field name="date" string="Date"/>
@@ -19,7 +18,6 @@
         </field>
     </record>
 
-    <!-- VUE FORMULAIRE : C'est ce que vous voyez "à l'intérieur" -->
     <record id="view_gauging_form" model="ir.ui.view">
         <field name="name">gauging.gauging.form</field>
         <field name="model">gauging.gauging</field>
@@ -32,7 +30,6 @@
                 <sheet>
                     <div class="oe_title">
                         <label for="name" string="Référence du Rapport"/>
-                        <!-- Retrait de readonly ici pour que vous puissiez modifier le nom -->
                         <h1><field name="name" placeholder="Ex: Clôture Lundi Matin" readonly="state == 'validated'"/></h1>
                     </div>
                     <group>
@@ -49,30 +46,19 @@
                         </group>
                     </group>
                     <notebook>
-                        <page string="Ventes Pompes et Boutique">
-                            <group string="Ventes de Carburant (Pompes)">
-                                <field name="pump_line_ids" nolabel="1" readonly="state == 'validated'">
-                                    <list editable="bottom">
-                                        <field name="pompiste_id"/>
-                                        <field name="pump_name"/>
-                                        <field name="product_id"/>
-                                        <field name="meter_opening" string="Index Ouverture"/>
-                                        <field name="meter_closing" string="Index Fermeture"/>
-                                        <field name="qty_sold" string="Quantité de Gallons" readonly="1"/>
-                                        <field name="price_unit" string="Prix Unitaire du Gallon"/>
-                                        <field name="amount_sold" sum="Total Ventes Pompes" readonly="1"/>
-                                    </list>
-                                </field>
-                            </group>
-                            <group string="Ventes Boutique et Divers">
-                                <field name="other_sale_ids" nolabel="1" readonly="state == 'validated'">
-                                    <list editable="bottom">
-                                        <field name="name"/>
-                                        <field name="qty" string="Quantité Vendue"/>
-                                        <field name="amount" sum="Total Ventes Diverses"/>
-                                    </list>
-                                </field>
-                            </group>
+                        <page string="Ventes Carburant (Pompes)">
+                            <field name="pump_line_ids" readonly="state == 'validated'">
+                                <list editable="bottom">
+                                    <field name="pompiste_id"/>
+                                    <field name="pump_name"/>
+                                    <field name="product_id"/>
+                                    <field name="meter_opening" string="Index Ouverture"/>
+                                    <field name="meter_closing" string="Index Fermeture"/>
+                                    <field name="qty_sold" string="Quantité de Gallons" readonly="1"/>
+                                    <field name="price_unit" string="Prix Unitaire du Gallon" readonly="1"/>
+                                    <field name="amount_sold" sum="Total Ventes Pompes" readonly="1"/>
+                                </list>
+                            </field>
                         </page>
                         <page string="Billets et Cash">
                             <group>
@@ -89,10 +75,12 @@
                                 </group>
                                 <group string="Dollars et Terminaux de Paiement">
                                     <field name="cash_usd" string="Montant Dollars USD Cash"/>
-                                    <field name="tpe_unibk" string="Terminal UNIBK"/>
+                                    <field name="total_usd_htg" string="= Équivalent en Gourdes" class="oe_read_only" decoration-info="1"/>
+                                    <field name="tpe_unibk" string="Terminal UNIBK" class="mt-4"/>
                                     <field name="tpe_sgbk" string="Terminal SGBK"/>
                                     <field name="tpe_bandari" string="Terminal Bandari"/>
-                                    <field name="subsidy_amount" string="Montant de la Subvention"/>
+                                    <field name="total_tpe" string="= Total Cartes" class="oe_read_only" decoration-info="1"/>
+                                    <field name="subsidy_amount" string="Montant Subvention" class="mt-4"/>
                                 </group>
                             </group>
                         </page>
@@ -100,7 +88,7 @@
                             <group string="Bons de Carburant">
                                 <field name="coupon_line_ids" nolabel="1" readonly="state == 'validated'">
                                     <list editable="bottom">
-                                        <field name="name"/>
+                                        <field name="name" string="Type de Bon"/>
                                         <field name="qty" string="Quantité de Bons"/>
                                         <field name="unit_value" string="Valeur Unitaire"/>
                                         <field name="amount" sum="Total des Bons"/>
@@ -116,9 +104,11 @@
                                     </list>
                                 </field>
                             </group>
-                            <group string="Chèques et Transferts Bancaires">
+                            <group string="Chèques et Transferts">
                                 <field name="check_line_ids" nolabel="1" readonly="state == 'validated'">
                                     <list editable="bottom">
+                                        <field name="customer_name" string="Nom du Client"/>
+                                        <field name="check_number" string="# du Chèque"/>
                                         <field name="bank" string="Banque Émettrice"/>
                                         <field name="amount" sum="Total des Chèques"/>
                                     </list>
@@ -130,17 +120,16 @@
                                 <field name="tank_line_ids" nolabel="1" readonly="state == 'validated'">
                                     <list editable="bottom">
                                         <field name="tank_name" string="Nom de la Cuve"/>
-                                        <field name="product_id" string="Produit Carburant"/>
-                                        <field name="opening_qty" string="Quantité à l'Ouverture"/>
-                                        <field name="closing_qty" string="Quantité à la Fermeture"/>
-                                        <field name="net_qty" string="Quantité en Stock"/>
+                                        <field name="opening_qty" string="Quantité Ouverture"/>
+                                        <field name="closing_qty" string="Quantité Fermeture"/>
+                                        <field name="qty_sold" string="Quantité Vendue" readonly="1"/>
                                     </list>
                                 </field>
                             </group>
                             <group string="Sorties de Caisse (Décaissements)">
                                 <field name="disbursement_ids" nolabel="1" readonly="state == 'validated'">
                                     <list editable="bottom">
-                                        <field name="beneficiary" string="Raison ou Bénéficiaire"/>
+                                        <field name="beneficiary" string="Raison / Bénéficiaire"/>
                                         <field name="amount" sum="Total des Dépenses"/>
                                     </list>
                                 </field>
@@ -152,17 +141,165 @@
         </field>
     </record>
 
-    <!-- ACTION UNIQUE -->
+    <!-- 2. VUES DE COMPTABILITÉ (LISTES) -->
+    <record id="view_check_list" model="ir.ui.view">
+        <field name="name">gauging.check.list</field>
+        <field name="model">gauging.check.line</field>
+        <field name="arch" type="xml">
+            <list string="Liste des Chèques">
+                <field name="date"/>
+                <field name="gauging_id" string="Référence Jaugeage"/>
+                <field name="customer_name"/>
+                <field name="check_number"/>
+                <field name="bank"/>
+                <field name="amount" sum="Total Chèques"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_credit_list" model="ir.ui.view">
+        <field name="name">gauging.credit.list</field>
+        <field name="model">gauging.credit.line</field>
+        <field name="arch" type="xml">
+            <list string="Liste des Crédits">
+                <field name="date"/>
+                <field name="gauging_id" string="Référence Jaugeage"/>
+                <field name="customer_name"/>
+                <field name="reference"/>
+                <field name="amount" sum="Total Crédits"/>
+            </list>
+        </field>
+    </record>
+
+    <record id="view_coupon_list" model="ir.ui.view">
+        <field name="name">gauging.coupon.list</field>
+        <field name="model">gauging.coupon.line</field>
+        <field name="arch" type="xml">
+            <list string="Liste des Bons">
+                <field name="date"/>
+                <field name="gauging_id" string="Référence Jaugeage"/>
+                <field name="name" string="Type de Bon"/>
+                <field name="amount" sum="Total Bons"/>
+            </list>
+        </field>
+    </record>
+
+    <!-- 3. VUES DES RAPPORTS CONSOLIDÉS (ÉCRANS AM+PM) -->
+    <record id="view_daily_decompte_form" model="ir.ui.view">
+        <field name="name">gauging.daily.decompte.form</field>
+        <field name="model">gauging.daily.decompte</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_generate" string="Générer les Totaux (AM + PM)" type="object" class="oe_highlight" invisible="state == 'validated'"/>
+                    <button name="action_validate" string="Verrouiller" type="object" invisible="state == 'validated'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group>
+                        <field name="date" readonly="state == 'validated'"/>
+                        <field name="supervisor_id" readonly="1"/>
+                    </group>
+                    <group string="GRANDS TOTAUX FINANCIERS DE LA JOURNÉE">
+                        <group>
+                            <field name="total_cash" readonly="1"/>
+                            <field name="total_carte" readonly="1"/>
+                            <field name="total_coupons" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="total_cheque" readonly="1"/>
+                            <field name="total_credit" readonly="1"/>
+                        </group>
+                    </group>
+                    <group string="QUANTITÉ DE GALLONS VENDUS PAR CITERNE">
+                        <group>
+                            <field name="tank_1_sold" readonly="1"/>
+                            <field name="tank_2_sold" readonly="1"/>
+                            <field name="tank_5_sold" readonly="1"/>
+                            <field name="tank_6_sold" readonly="1"/>
+                        </group>
+                        <group>
+                            <field name="tank_3_sold" readonly="1"/>
+                            <field name="tank_4_sold" readonly="1"/>
+                            <field name="propane_1_sold" readonly="1"/>
+                            <field name="propane_2_sold" readonly="1"/>
+                        </group>
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <record id="view_daily_inventaire_form" model="ir.ui.view">
+        <field name="name">gauging.daily.inventaire.form</field>
+        <field name="model">gauging.daily.inventaire</field>
+        <field name="arch" type="xml">
+            <form>
+                <header>
+                    <button name="action_generate" string="Calculer Ouverture AM -> Fermeture PM" type="object" class="oe_highlight" invisible="state == 'validated'"/>
+                    <button name="action_validate" string="Verrouiller" type="object" invisible="state == 'validated'"/>
+                    <field name="state" widget="statusbar"/>
+                </header>
+                <sheet>
+                    <div class="oe_title"><h1><field name="name"/></h1></div>
+                    <group><field name="date" readonly="state == 'validated'"/></group>
+                    <field name="line_ids" readonly="1">
+                        <list>
+                            <field name="tank_name"/>
+                            <field name="open_am"/>
+                            <field name="close_pm"/>
+                            <field name="variance"/>
+                        </list>
+                    </field>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+    <!-- 4. ACTIONS ET MENU LATÉRAL STRUCTURÉ -->
     <record id="action_station_gauging" model="ir.actions.act_window">
-        <field name="name">Fiches de Jaugeage</field>
+        <field name="name">Jaugeages et Décomptes</field>
         <field name="res_model">gauging.gauging</field>
         <field name="view_mode">list,form</field>
     </record>
+    <record id="action_daily_decompte" model="ir.actions.act_window">
+        <field name="name">Rapports de Décompte</field>
+        <field name="res_model">gauging.daily.decompte</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_daily_inventaire" model="ir.actions.act_window">
+        <field name="name">Rapports d'Inventaire</field>
+        <field name="res_model">gauging.daily.inventaire</field>
+        <field name="view_mode">list,form</field>
+    </record>
+    <record id="action_list_checks" model="ir.actions.act_window">
+        <field name="name">Liste des Chèques</field>
+        <field name="res_model">gauging.check.line</field>
+        <field name="view_mode">list</field>
+    </record>
+    <record id="action_list_credits" model="ir.actions.act_window">
+        <field name="name">Liste des Crédits</field>
+        <field name="res_model">gauging.credit.line</field>
+        <field name="view_mode">list</field>
+    </record>
+    <record id="action_list_coupons" model="ir.actions.act_window">
+        <field name="name">Liste des Bons</field>
+        <field name="res_model">gauging.coupon.line</field>
+        <field name="view_mode">list</field>
+    </record>
 
-    <!-- MENUS : J'ai replacé les menus Rapport comme demandé -->
     <menuitem id="menu_station_management" name="TD Gestion de Station" sequence="1" web_icon="base,static/description/settings.png"/>
     
-    <menuitem id="menu_station_gauging" name="Jaugeages et Décomptes" parent="menu_station_management" sequence="10" action="action_station_gauging"/>
-    <menuitem id="menu_station_report_decompte" name="Rapport de Décompte" parent="menu_station_management" sequence="20" action="action_station_gauging"/>
-    <menuitem id="menu_station_report_inventaire" name="Rapport d'Inventaire" parent="menu_station_management" sequence="30" action="action_station_gauging"/>
+    <menuitem id="menu_operations" name="Opérations" parent="menu_station_management" sequence="10"/>
+    <menuitem id="menu_station_gauging" name="Jaugeages (AM/PM)" parent="menu_operations" action="action_station_gauging"/>
+
+    <menuitem id="menu_rapports_consolid" name="Rapports Consolidés (Écrans)" parent="menu_station_management" sequence="20"/>
+    <menuitem id="menu_daily_decompte" name="Rapports de Décompte" parent="menu_rapports_consolid" action="action_daily_decompte"/>
+    <menuitem id="menu_daily_inventaire" name="Rapports d'Inventaire" parent="menu_rapports_consolid" action="action_daily_inventaire"/>
+
+    <menuitem id="menu_comptabilite" name="Comptabilité (Listes)" parent="menu_station_management" sequence="30"/>
+    <menuitem id="menu_checks" name="Liste des Chèques" parent="menu_comptabilite" action="action_list_checks"/>
+    <menuitem id="menu_credits" name="Liste des Crédits" parent="menu_comptabilite" action="action_list_credits"/>
+    <menuitem id="menu_coupons" name="Liste des Bons" parent="menu_comptabilite" action="action_list_coupons"/>
 </odoo>

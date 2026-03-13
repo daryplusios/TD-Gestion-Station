@@ -1,5 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <odoo>
+    <!-- Impressions Fiche Simple -->
     <record id="action_report_decompte" model="ir.actions.report">
         <field name="name">Rapport de Décompte</field>
         <field name="model">gauging.gauging</field>
@@ -9,7 +10,6 @@
         <field name="binding_model_id" ref="model_gauging_gauging"/>
         <field name="binding_type">report</field>
     </record>
-
     <record id="action_report_inventaire" model="ir.actions.report">
         <field name="name">Rapport d'Inventaire</field>
         <field name="model">gauging.gauging</field>
@@ -17,6 +17,26 @@
         <field name="report_name">gauging_module.report_inventaire_template</field>
         <field name="report_file">gauging_module.report_inventaire_template</field>
         <field name="binding_model_id" ref="model_gauging_gauging"/>
+        <field name="binding_type">report</field>
+    </record>
+
+    <!-- Impressions Consolidation (AM+PM) -->
+    <record id="action_print_daily_decompte" model="ir.actions.report">
+        <field name="name">Imprimer Décompte (PDF)</field>
+        <field name="model">gauging.daily.decompte</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">gauging_module.report_daily_decompte_template</field>
+        <field name="report_file">gauging_module.report_daily_decompte_template</field>
+        <field name="binding_model_id" ref="model_gauging_daily_decompte"/>
+        <field name="binding_type">report</field>
+    </record>
+    <record id="action_print_daily_inventaire" model="ir.actions.report">
+        <field name="name">Imprimer Inventaire (PDF)</field>
+        <field name="model">gauging.daily.inventaire</field>
+        <field name="report_type">qweb-pdf</field>
+        <field name="report_name">gauging_module.report_daily_inventaire_template</field>
+        <field name="report_file">gauging_module.report_daily_inventaire_template</field>
+        <field name="binding_model_id" ref="model_gauging_daily_inventaire"/>
         <field name="binding_type">report</field>
     </record>
 </odoo>
