@@ -1,4 +1,5 @@
 from odoo import models, fields, api, _
+from odoo.exceptions import UserError
 
 class Gauging(models.Model):
     _name = 'gauging.gauging'
@@ -12,7 +13,7 @@ class Gauging(models.Model):
     state = fields.Selection([('draft', 'Brouillon'), ('validated', 'Validé')], default='draft', string='État du Rapport')
     currency_rate = fields.Float(string='Taux de Change (Valeur d\'un Dollar en Gourdes)', default=1.0)
 
-    # Relations principales (Boutique retirée)
+    # Relations
     tank_line_ids = fields.One2many('gauging.tank.line', 'gauging_id', string='Lignes d\'Inventaire des Cuves')
     pump_line_ids = fields.One2many('gauging.pump.line', 'gauging_id', string='Relevés des Compteurs de Pompes')
     coupon_line_ids = fields.One2many('gauging.coupon.line', 'gauging_id', string='Bons de Carburant')
@@ -38,8 +39,8 @@ class Gauging(models.Model):
     subsidy_amount = fields.Float(string='Montant Subvention État')
 
     # Nouveaux totaux visuels instantanés
-    total_tpe = fields.Float(string='Total Cartes (TPE)', compute='_compute_live_totals')
-    total_usd_htg = fields.Float(string='Équivalent USD en Gourdes', compute='_compute_live_totals')
+    total_tpe = fields.Float(string='Total Cartes (TPE)', compute='_compute_live_totals', store=True)
+    total_usd_htg = fields.Float(string='Équivalent USD en Gourdes', compute='_compute_live_totals', store=True)
 
     # Totaux de réconciliation
     total_sales_expected = fields.Float(string='Total des Ventes Théoriques', compute='_compute_all_totals', store=True)
@@ -85,10 +86,6 @@ class Gauging(models.Model):
     def action_validate(self):
         self.write({'state': 'validated'})
 
-
-# =========================================================================
-# MODÈLES DE LIGNES DE SAISIE (Avec digits=(16,3))
-# =========================================================================
 
 class GaugingPumpLine(models.Model):
     _name = 'gauging.pump.line'
@@ -215,6 +212,11 @@ class GaugingDailyDecompte(models.Model):
     def action_generate(self):
         for rec in self:
             gaugings = self.env['gauging.gauging'].search([('date', '=', rec.date), ('state', '=', 'validated')])
+            
+            # SECURITÉ AJOUTÉE : Avertit l'utilisateur s'il a oublié de valider la fiche AM/PM
+            if not gaugings:
+                raise UserError(_("⚠️ ALERTE : Aucun jaugeage 'Validé' n'a été trouvé pour la date du %s. Vous devez d'abord Valider vos fiches de shifts (AM ou PM) avant de générer le Grand Total !") % rec.date)
+
             rec.total_cash = sum(gaugings.mapped('total_cash_htg'))
             rec.total_carte = sum(gaugings.mapped('total_tpe'))
             rec.total_coupons = sum(gaugings.mapped('coupon_line_ids.amount'))
@@ -252,6 +254,10 @@ class GaugingDailyInventaire(models.Model):
         for rec in self:
             rec.line_ids.unlink()
             gaugings = self.env['gauging.gauging'].search([('date', '=', rec.date), ('state', '=', 'validated')])
+            
+            if not gaugings:
+                raise UserError(_("⚠️ ALERTE : Aucun jaugeage 'Validé' n'a été trouvé pour la date du %s.") % rec.date)
+
             am_gaugings = gaugings.filtered(lambda g: g.shift == 'am')
             pm_gaugings = gaugings.filtered(lambda g: g.shift == 'pm')
 
